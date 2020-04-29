@@ -98,3 +98,46 @@ def process_data(data: str) -> pandas.DataFrame:
     dataframe = pandas.DataFrame(data)
 
     return dataframe
+
+
+def generate_emissions_dataset(energy_generation_dataset: pandas.DataFrame) -> pandas.DataFrame:
+    """
+    Generates a dataset with the sum of CO2 emissions coming from energy generation
+
+    Parameters:
+        - energy_generation_dataset (pandas.Dataframe): Dataset of energy generations
+    Returns:
+        Dataset with two columns: Fecha (timestamp) and Emisiones (Emissions)
+    """
+
+    renovable_energies = ['dem', 'eol', 'hid', 'icb', 'inter', 'nuc', 'sol', 'solFot',
+                       'solTer', 'Unnamed: 0']
+    no_renovable_energies = ['aut', 'car', 'cc', 'cogenResto', 'gf', 'termRenov']
+
+    # Drop renovable energies
+    energy_generation_dataset = energy_generation_dataset.drop(renovable_energies, axis=1)
+    # Compute emissions coming from no renovable energies
+    energy_generation_dataset = compute_emissions(energy_generation_dataset)
+    # Drop no renovable energies
+    energy_generation_dataset = energy_generation_dataset.drop(no_renovable_energies, axis=1)
+
+    energy_generation_dataset = energy_generation_dataset.rename(columns={'ts': 'Fecha', 'Emissions': 'Emisiones'})
+
+    return energy_generation_dataset
+
+
+def compute_emissions(dataset: pandas.DataFrame) -> pandas.DataFrame:
+    """
+    Compute the emissions associated to energy generation
+
+    Parameters:
+         dataset (pandas.Dataframe): Dataset of energy generation
+    Returns:
+        Dataset with the Emissions column added
+    """
+
+    dataset['Emissions'] = dataset['aut'] * CO2_EMISSIONS_FACTOR['aut'] + dataset['car'] * CO2_EMISSIONS_FACTOR['car'] \
+                       + dataset['cc'] * CO2_EMISSIONS_FACTOR['cc'] + dataset['cogenResto'] * CO2_EMISSIONS_FACTOR['cogenResto'] \
+                       + dataset['gf'] * CO2_EMISSIONS_FACTOR['gf'] + dataset['termRenov'] * CO2_EMISSIONS_FACTOR['termRenov']
+
+    return dataset
