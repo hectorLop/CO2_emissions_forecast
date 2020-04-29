@@ -15,7 +15,7 @@ URL = 'https://demanda.ree.es/WSvisionaMovilesPeninsulaRest/resources/demandaGen
 DATETIME_FORMAT = '%Y-%m-%d'
 
 
-def retrieve_emisions_data(start_date_str: str, stop_date_str: str) -> None:
+def retrieve_emisions_data(start_date_str: str, stop_date_str: str, file_name: str) -> None:
     """
     Creates a csv file with emissions data up to a certain date.
 
@@ -24,6 +24,7 @@ def retrieve_emisions_data(start_date_str: str, stop_date_str: str) -> None:
     Parameters:
         start_date_str (str): Start date to gather data
         stop_date_str (str): Date to stop gathering data
+        file_name (str): Name of csv file
     Returns:
         None
     """
@@ -45,7 +46,7 @@ def retrieve_emisions_data(start_date_str: str, stop_date_str: str) -> None:
         # Decrease one day
         current_datetime = current_datetime - timedelta(days=1)
 
-    global_dataframe.to_csv('energy_generation_data.csv')
+    global_dataframe.to_csv(file_name)
 
 
 def are_different_dates(first_date: datetime, second_date: datetime) -> bool:
