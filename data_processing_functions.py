@@ -141,3 +141,16 @@ def compute_emissions(dataset: pandas.DataFrame) -> pandas.DataFrame:
                        + dataset['gf'] * CO2_EMISSIONS_FACTOR['gf'] + dataset['termRenov'] * CO2_EMISSIONS_FACTOR['termRenov']
 
     return dataset
+
+
+def reverse_dataset(dataset: pandas.DataFrame) -> pandas.DataFrame:
+    """
+    Reverse the rows order of a given dataset
+
+    Parameters:
+        dataset (pandas.Dataframe): Dataset to be reversed
+    Returns:
+        Reversed dataset
+    """
+
+    return dataset.iloc[::-1]
