@@ -53,6 +53,9 @@ class CO2DataCollector:
             Dataframe with energy generation data
         """
 
+        # Creates an empty dataset
+        energy_generation_df = pandas.DataFrame()
+
         # Create the datetime objects
         stop_datetime = datetime.strptime(stop_date_str, DATETIME_FORMAT)
         current_datetime = datetime.strptime(start_date_str, DATETIME_FORMAT)
@@ -60,9 +63,6 @@ class CO2DataCollector:
         # Checks if the stop date is valid
         if not self.__is_valid_stop_date(stop_datetime):
             raise Exception("La fecha de fin no es valida")
-
-        # Creates an empty dataset
-        energy_generation_df = pandas.DataFrame()
 
         while self.__are_different_dates(current_datetime, stop_datetime):
             # Creates the endpoint with the current date
@@ -195,6 +195,22 @@ class CO2DataCollector:
         dataset['Emissions'] = sum(emissions_by_energy)
 
         return dataset
+
+    def _remove_duplicated_dates(self, dataset: pandas.DataFrame) -> pandas.DataFrame:
+        """
+        Remove duplicated dates from the dataset.
+
+        For each day it retrieves data from 21:00 of the day before until 03:00 of the day after,
+        due to this there are duplicated dates from 21:00 until 03:00.
+        Each dataframe has 180 rows and the 21:00 is in row number 144, so the last 36 rows are duplicated
+
+        Parameters:
+            dataset (pandas.Dataframe): Dataset with duplicated dates
+        Returns:
+            Dataset without duplicated dates
+        """
+
+        return dataset[:-36]
 
     def generate_csv(self, file_name: str) -> None:
         """
