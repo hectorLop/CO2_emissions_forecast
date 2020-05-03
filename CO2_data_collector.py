@@ -74,6 +74,9 @@ class CO2DataCollector:
             json_data = self.__generate_json(data)
             current_date_df = pandas.DataFrame(json_data)
 
+            # Remove duplicated dates
+            current_date_df = self._remove_duplicated_dates(current_date_df)
+
             # Appends new data to the Dataframe
             energy_generation_df = pandas.concat([energy_generation_df, current_date_df])
 
@@ -202,7 +205,7 @@ class CO2DataCollector:
 
         For each day it retrieves data from 21:00 of the day before until 03:00 of the day after,
         due to this there are duplicated dates from 21:00 until 03:00.
-        Each dataframe has 180 rows and the 21:00 is in row number 144, so the last 36 rows are duplicated
+        Each dataframe has 180 rows and the 21:00 is in row number 144, so 180-143 = 37 rows are duplicated
 
         Parameters:
             dataset (pandas.Dataframe): Dataset with duplicated dates
@@ -210,7 +213,7 @@ class CO2DataCollector:
             Dataset without duplicated dates
         """
 
-        return dataset[:-36]
+        return dataset[:-37]
 
     def generate_csv(self, file_name: str) -> None:
         """
@@ -221,7 +224,14 @@ class CO2DataCollector:
         Returns:
             None
         """
+
         if self.emissions_df is not None:
             self.emissions_df.to_csv(file_name)
         else:
             print("No existen datos para generar el fichero")
+
+
+if __name__ == "__main__":
+    collector = CO2DataCollector()
+    collector.collect_data('2019-01-01', '2019-01-10')
+    collector.generate_csv("test.csv")
