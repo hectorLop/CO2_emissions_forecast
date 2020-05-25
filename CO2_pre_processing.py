@@ -1,6 +1,7 @@
 import pandas
+from datetime import datetime
 
-def prepare_timeseries_dataset(dataset: pandas.DataFrame, ts_column_pos: int) -> pandas.DataFrame:
+def prepare_timeseries_dataset(dataset: pandas.DataFrame, ts_column_position: int) -> pandas.DataFrame:
     """
     Prepare a time series dataset ready to be processed
 
@@ -11,7 +12,7 @@ def prepare_timeseries_dataset(dataset: pandas.DataFrame, ts_column_pos: int) ->
         dataset ready to be processed
     """
 
-    ts_column_name = dataset.columns[ts_column_pos]
+    ts_column_name = dataset.columns[ts_column_position]
 
     # Converts the timestamp column to datetime object
     dataset[ts_column_name] = pandas.to_datetime(dataset[ts_column_name])
@@ -21,3 +22,65 @@ def prepare_timeseries_dataset(dataset: pandas.DataFrame, ts_column_pos: int) ->
     dataset = dataset.sort_index()
 
     return dataset
+
+def create_dataset_timefreq_1hour(dataset: pandas.DataFrame) -> pandas.DataFrame:
+    """
+    Creates a dataset where the difference between timestamps is 1 hour
+
+    Parameters:
+        dataset (pandas.DataFrame): Dataset where difference between timestamps is not 1 hour
+    Returns:
+        New dataset with a difference of 1 hour between timestamps and values grouped by each hour
+    """
+
+    # Creates the new dataset
+    dataset_freq_1hour = pandas.DataFrame()
+
+    # If the dataset has an index different from pandas default RangeIndex, it is reset
+    dataset = reset_index_if_no_RangeIndex(dataset)
+
+    # Creates 'Fecha' column with custom datetime
+    dataset_freq_1hour['Fecha'] = dataset['Fecha'].apply(create_date_with_no_minutes_and_seconds).unique()
+
+    # Converts Fecha column into DatetimeIndex in order to group emissions by hours
+    times = pandas.DatetimeIndex(dataset.Fecha)
+    # Creates dataset  grouped by hour
+    # Parameter 'as_index = False' needed in order to be able to obtain the values
+    dataset_grouped_by_hour = dataset.groupby([times.year, times.month, times.day, times.hour], as_index=False)
+    
+    # Creates 'Emisiones' column with the emissions sum for each hour
+    dataset_freq_1hour['Emisiones'] = dataset_grouped_by_hour.sum()['Emisiones']
+
+    return dataset_freq_1hour
+
+def reset_index_if_no_RangeIndex(dataset: pandas.DataFrame) -> pandas.DataFrame:
+    """
+    Reset the dataset index if it is not a RangeIndex, which is the default pandas index
+
+    Parameters:
+        dataset (pandas.DataFrame): dataset to be checked
+    Returns:
+        Dataset with reset index if true
+    """
+
+    if dataset.index != pandas.RangeIndex:
+        return dataset.reset_index()
+    
+    return dataset
+
+def create_date_with_no_minutes_and_seconds(datetime_value: pandas.Series) -> datetime:
+    """
+    Creates a datetime with year, month, day and hour from a full timestamp
+
+    Parameters:
+        row (pandas.Series): Row of the dataset
+    Returns:
+        Datetime with year, month, day and hour
+    """
+
+    year = datetime_value.year
+    month = datetime_value.month
+    day = datetime_value.day
+    hour = datetime_value.hour
+
+    return datetime(year, month, day, hour)
