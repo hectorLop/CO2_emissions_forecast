@@ -1,5 +1,8 @@
 import pandas
 from datetime import datetime
+import numpy
+import sklearn.metrics as metrics
+from typing import List
 
 def prepare_timeseries_dataset(dataset: pandas.DataFrame, ts_column_position: int) -> pandas.DataFrame:
     """
@@ -84,3 +87,48 @@ def create_date_with_no_minutes_and_seconds(datetime_value: pandas.Series) -> da
     hour = datetime_value.hour
 
     return datetime(year, month, day, hour)
+
+def regression_perfomance_metrics(real_values: pandas.Series, predicted_values: pandas.Series) -> List[float]:
+    """
+    Gets the following regression metrics: MAE, MSE, RMSE, R^2, MAPE
+
+    Parameters:
+        - real_values (pandas.Series): Real values of data
+        - predicted_values (pandas.Series): Predicted values of data
+    Returns:
+        List with all the metrics in this order:
+            0 -> MAE
+            1 -> MSE
+            2 -> RMSE
+            3 -> R^2
+            4 -> MAPE
+    """
+
+    regression_metrics = []
+
+    # Convert Series to numpy arrays
+    real_values = real_values.to_numpy()
+    predicted_values = predicted_values.to_numpy()
+
+    # MAE calculation
+    mean_absolute_error = metrics.mean_absolute_error(real_values, predicted_values)
+    regression_metrics.append(mean_absolute_error)
+
+    # MSE calculation
+    mean_squared_error = metrics.mean_squared_error(real_values, predicted_values)
+    regression_metrics.append(mean_squared_error)
+
+    # RMSE calculation
+    rooted_mean_squared_error = numpy.sqrt(mean_squared_error)
+    regression_metrics.append(rooted_mean_squared_error)
+
+    # R^2 calculation
+    r2_score = metrics.r2_score(real_values, predicted_values)
+    regression_metrics.append(r2_score)
+
+    # MAPE calculation
+    mean_absolute_percentage_error = numpy.mean(
+        numpy.abs((real_values - predicted_values) / real_values)) * 100
+    regression_metrics.append(mean_absolute_percentage_error)
+
+    return regression_metrics
