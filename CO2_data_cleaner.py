@@ -19,7 +19,12 @@ class CO2DataCleaner:
             Cleaned dataset as pandas.DataFrame
         """
 
-        return None
+        # Removes the unnamed column
+        dataset = self.__remove_unnamed_column(dataset)
+        # Removes the date errors
+        dataset = self.__remove_date_errors(dataset)
+
+        return dataset
 
     def __remove_unnamed_column(self, dataset: pandas.DataFrame) -> pandas.DataFrame:
         """
