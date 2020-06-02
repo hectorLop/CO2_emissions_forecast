@@ -52,4 +52,9 @@ class CO2DataCleaner:
             Cleaned dataset as pandas.DataFrame
         """
 
-        return None
+        # Replace dates with 2A by 02
+        dataset['Fecha'] = dataset['Fecha'].str.replace('2A', '02')
+        # Use the NOT simbol (~) to return the dataset without rows containing a 2B
+        dataset = dataset[~dataset.Fecha.str.contains("2B")]
+
+        return dataset
