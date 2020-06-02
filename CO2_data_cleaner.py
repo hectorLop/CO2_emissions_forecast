@@ -31,7 +31,11 @@ class CO2DataCleaner:
             Cleaned dataset as pandas.DataFrame
         """
 
-        return None
+        # Drop the Unnamed: 0 column
+        if 'Unnamed: 0' in dataset.columns:
+            dataset = dataset.drop(['Unnamed: 0'], axis=1)
+
+        return dataset
 
     def __remove_date_errors(self, dataset: pandas.DataFrame) -> pandas.DataFrame:
         """
