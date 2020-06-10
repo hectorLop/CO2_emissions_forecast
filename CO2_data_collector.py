@@ -26,9 +26,9 @@ class CO2DataCollector:
     """
 
     def __init__(self):
-        self.url = URL
-        self.emissions_factor = CO2_EMISSIONS_FACTOR
-        self.emissions_df = None
+        self._url = URL
+        self._emissions_factor = CO2_EMISSIONS_FACTOR
+        self._emissions_df = None
 
     def collect_data(self, start_date_str: str, stop_date_str: str):
         """
@@ -40,7 +40,7 @@ class CO2DataCollector:
         """
 
         energy_generation_df = self.__get_energy_generation_data(start_date_str, stop_date_str)
-        self.emissions_df = self.__generate_emissions_dataset(energy_generation_df)
+        self._emissions_df = self.__generate_emissions_dataset(energy_generation_df)
 
     def __get_energy_generation_data(self, start_date_str: str, stop_date_str: str) -> pandas.DataFrame:
         """
@@ -67,7 +67,7 @@ class CO2DataCollector:
         while self.__are_different_dates(current_datetime, stop_datetime):
             # Creates the endpoint with the current date
             current_date_str = current_datetime.strftime(DATETIME_FORMAT)
-            endpoint = self.url + current_date_str
+            endpoint = self._url + current_date_str
 
             # Retrieves the data, generates a json and builds a Dataframe
             data = self.__retrieve_data_from_url(endpoint)
@@ -143,18 +143,6 @@ class CO2DataCollector:
 
         return json_data
 
-    def set_new_endpoint(self, endpoint: str) -> None:
-        """
-        Sets a new endpoint from which to obtain the data
-
-        Parameters:
-            endpoint (str): New endpoint url
-        Return:
-            None
-        """
-
-        self.url = endpoint
-
     def __generate_emissions_dataset(self, energy_generation_dataset: pandas.DataFrame) -> pandas.DataFrame:
         """
         Generates a dataset with the sum of CO2 emissions coming from energy generation
@@ -191,26 +179,10 @@ class CO2DataCollector:
         """
 
         # Get the total emissions for each row
-        emissions_by_energy = [dataset[key] * self.emissions_factor[key] for key in self.emissions_factor]
+        emissions_by_energy = [dataset[key] * self._emissions_factor[key] for key in self._emissions_factor]
         dataset['Emissions'] = sum(emissions_by_energy)
 
         return dataset
-
-    def _remove_duplicated_dates(self, dataset: pandas.DataFrame) -> pandas.DataFrame:
-        """
-        Remove duplicated dates from the dataset.
-
-        For each day it retrieves data from 21:00 of the day before until 03:00 of the day after,
-        due to this there are duplicated dates from 21:00 until 03:00.
-        Each dataframe has 180 rows and the 21:00 is in row number 144, so 180-143 = 37 rows are duplicated
-
-        Parameters:
-            dataset (pandas.Dataframe): Dataset with duplicated dates
-        Returns:
-            Dataset without duplicated dates
-        """
-
-        return dataset[:-37]
 
     def generate_csv(self, file_name: str) -> None:
         """
@@ -222,13 +194,7 @@ class CO2DataCollector:
             None
         """
 
-        if self.emissions_df is not None:
-            self.emissions_df.to_csv(file_name)
+        if self._emissions_df is not None:
+            self._emissions_df.to_csv(file_name)
         else:
             print("No existen datos para generar el fichero")
-
-
-if __name__ == "__main__":
-    collector = CO2DataCollector()
-    collector.collect_data('2019-01-01', '2019-01-10')
-    collector.generate_csv("test.csv")
