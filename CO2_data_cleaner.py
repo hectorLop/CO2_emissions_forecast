@@ -21,6 +21,8 @@ class CO2DataCleaner:
 
         # Removes the unnamed column
         dataset = self.__remove_unnamed_column(dataset)
+        # Removes duplicated dates
+        dataset = dataset.drop_duplicates("Fecha")
         # Removes the date errors
         dataset = self.__remove_date_errors(dataset)
 

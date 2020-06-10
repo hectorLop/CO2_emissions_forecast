@@ -74,9 +74,6 @@ class CO2DataCollector:
             json_data = self.__generate_json(data)
             current_date_df = pandas.DataFrame(json_data)
 
-            # Remove duplicated dates
-            current_date_df = self._remove_duplicated_dates(current_date_df)
-
             # Appends new data to the Dataframe
             energy_generation_df = pandas.concat([energy_generation_df, current_date_df])
 
