@@ -120,10 +120,28 @@ class CO2DataPreparation():
         
         return dataset
 
+    def create_resampled_dataset(self, dataset: pandas.DataFrame, freq_to_resample: str) -> pandas.DataFrame:
+        """
+        Resample a dataset with a custom frequency
 
+        Parameters:
+            dataset (pandas.DataFrame): Dataset to be resampled
+            freq_to_resample (str): Offset alias to resample the dataset
+        Returns:
+            New dataset with custom frequency
+        """
 
+        # Check if dataset has frequency in order to prevent errors
+        if dataset.index.freq is None:
+            return None
 
+        # Resample the dataset with a new frequency
+        new_series = dataset['Emisiones'].resample(freq_to_resample).sum()
 
+        # Creates new dataset from the resampled series
+        new_dataset = pandas.DataFrame({'Emisiones':new_series.values}, index=new_series.index)
+
+        return new_dataset
 
 
 def regression_perfomance_metrics(real_values: pandas.Series, predicted_values: pandas.Series) -> Dict[str, float]:
