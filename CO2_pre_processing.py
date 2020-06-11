@@ -97,6 +97,28 @@ class CO2DataPreparation():
 
         return dataset
 
+    def set_data_frequencey(self, dataset: pandas.DataFrame, frequency: str) -> pandas.DataFrame:
+        """
+        Set a custom frequency to a given dataset.
+
+        Parameters:
+            dataset (pandas.DataFrame): Dataset to be setted a new frequency
+            frequency (str): Offset alias
+        Return:
+            Dataset with new frequency
+        """
+        
+        # Set new frequency to the data
+        dataset = dataset.asfreq(frequency)
+
+        # Compute the missing values
+        missing_values = dataset.isnull().sum()
+
+        if missing_values > 0:
+            # Use interpolation to fill missing values
+            dataset = dataset.interpolate()
+        
+        return dataset
 
 
 
