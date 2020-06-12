@@ -97,13 +97,13 @@ class CO2DataPreparation():
 
         return dataset
 
-    def set_data_frequencey(self, dataset: pandas.DataFrame, frequency: str) -> pandas.DataFrame:
+    def change_frequency(self, dataset: pandas.DataFrame, frequency: str) -> pandas.DataFrame:
         """
-        Set a custom frequency to a given dataset.
+        Change the frequency of a given dataset.
 
         Parameters:
             dataset (pandas.DataFrame): Dataset to be setted a new frequency
-            frequency (str): Offset alias
+            frequency (str): Offset alias representing the frequency desired
         Return:
             Dataset with new frequency
         """
@@ -111,15 +111,11 @@ class CO2DataPreparation():
         # Set new frequency to the data
         dataset = dataset.asfreq(frequency)
 
-        # Compute the missing values
-        missing_values = dataset.isnull().sum()
-
-        if missing_values > 0:
-            # Use interpolation to fill missing values
-            dataset = dataset.interpolate()
+        # The new frequency may have created missing values, so they must be handled
+        dataset = self.__handle_missing_values(dataset)
         
         return dataset
-
+  
     def create_resampled_dataset(self, dataset: pandas.DataFrame, freq_to_resample: str) -> pandas.DataFrame:
         """
         Resample a dataset with a custom frequency
@@ -142,6 +138,24 @@ class CO2DataPreparation():
         new_dataset = pandas.DataFrame({'Emisiones':new_series.values}, index=new_series.index)
 
         return new_dataset
+
+    def __handle_missing_values(self, dataset: pandas.DataFrame) -> pandas.DataFrame:
+        """
+        Handle the missing values if they exist in a given dataset
+
+        Parameters:
+            dataset (pandas.DataFrame): Dataset to with possible missing values
+        Returns:
+            Dataset without missing values
+        """
+
+        missing_values = dataset.isnull().sum()
+
+        if missing_values > 0:
+            # Use linear interpolation to fill missing values
+            dataset = dataset.interpolate()
+        
+        return dataset
 
 
 def regression_perfomance_metrics(real_values: pandas.Series, predicted_values: pandas.Series) -> Dict[str, float]:
