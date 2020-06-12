@@ -86,14 +86,18 @@ class CO2DataPreparation():
         Handle the missing values if they exist in a given dataset
 
         Parameters:
-            dataset (pandas.DataFrame): Dataset to with possible missing values
+            dataset (pandas.DataFrame): Dataset with possible missing values
         Returns:
             Dataset without missing values
         """
 
         missing_values = dataset.isnull().sum()
+        
+        # The sum returns a series, so it can't be treated as an integer
+        # Use the any() method which returns true if missing values exists
+        exist_missing_values = missing_values.any()
 
-        if missing_values > 0:
+        if exist_missing_values:
             # Use linear interpolation to fill missing values
             dataset = dataset.interpolate()
         
