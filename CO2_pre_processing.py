@@ -13,7 +13,7 @@ class CO2DataPreparation():
     def __init__(self):
         pass
 
-    def prepare_timeseries_dataset(self, dataset: pandas.DataFrame, ts_column_position: int) -> pandas.DataFrame:
+    def prepare_timeseries_dataset(self, dataset: pandas.DataFrame, ts_column_name: str) -> pandas.DataFrame:
         """
         Prepare a time series dataset ready to be processed
 
@@ -24,7 +24,8 @@ class CO2DataPreparation():
             dataset ready to be processed
         """
 
-        ts_column_name = dataset.columns[ts_column_position]
+        if ts_column_name not in dataset.columns:
+            raise ValueError("Given column doesn't appear in the dataset")
 
         # Converts the timestamp column to datetime object
         dataset[ts_column_name] = pandas.to_datetime(dataset[ts_column_name])
