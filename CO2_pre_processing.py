@@ -116,7 +116,7 @@ class CO2DataPreparation():
         
         return dataset
   
-    def create_resampled_dataset(self, dataset: pandas.DataFrame, freq_to_resample: str) -> pandas.DataFrame:
+    def create_resampled_dataset(self, dataset: pandas.DataFrame, frequency: str) -> pandas.DataFrame:
         """
         Resample a dataset with a custom frequency
 
@@ -129,13 +129,16 @@ class CO2DataPreparation():
 
         # Check if dataset has frequency in order to prevent errors
         if dataset.index.freq is None:
-            return None
+            raise TypeError("Dataset frequency is None")
 
         # Resample the dataset with a new frequency
-        new_series = dataset['Emisiones'].resample(freq_to_resample).sum()
+        new_series = dataset['Emisiones'].resample(frequency).sum()
 
         # Creates new dataset from the resampled series
         new_dataset = pandas.DataFrame({'Emisiones':new_series.values}, index=new_series.index)
+
+        # Resampling may have created missing values
+        new_dataset = self.__handle_missing_values(new_dataset)
 
         return new_dataset
 
