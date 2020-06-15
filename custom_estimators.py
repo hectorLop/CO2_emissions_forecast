@@ -36,3 +36,31 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
         Outputs a metric indicating how fit is a timeseries model
         """
         pass
+
+class ARIMAEstimator(TimeSeriesEstimator):
+    """
+    This class wraps an ARIMA model into an Estimator
+    """
+
+    def __init__(self):
+        pass
+
+    def fit(self):
+        pass
+
+    def predict(self):
+        pass
+
+class ProphetEstimator(TimeSeriesEstimator):
+    """
+    This class wraps a Prophet model into an Estimator
+    """
+
+    def __init__(self):
+        pass
+
+    def fit(self):
+        pass
+
+    def predict(self):
+        pass
