@@ -121,7 +121,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         self._enforce_invertibility = enforce_invertibility
 
 
-    def fit(self, data: numpy.ndarray) -> self._model_results:
+    def fit(self, data: numpy.ndarray) -> self:
         """
         Fits the given data to the model.
 
@@ -132,8 +132,8 @@ class ARIMAEstimator(TimeSeriesEstimator):
         
         Returns
         -------
-        model_results: SARIMAXResults
-            Results of the fitting model
+        model_results : ARIMAEstimator
+            Self ARIMAEstimator object
         """
         self._model = SARIMAX(data, order=self._order,
                               seasonal_order=self._seasonal_order,
@@ -142,10 +142,27 @@ class ARIMAEstimator(TimeSeriesEstimator):
 
         self._model_results = self._model.fit()
         
-        return self._model_results
+        return self
 
-    def predict(self):
-        pass
+    def predict(self, steps=48) -> numpy.ndarray:
+        """
+        Returns a forecast of a given number of steps in the future.
+
+        Parameters
+        ----------
+        steps : integer
+            Number of steps to forecast from the end of the sample.
+            It is related to the frequency of the data, so if the data
+            has an hourly frequency then the number of steps would be 
+            the hours to predict in the future. Default is 48.
+        
+        Returns
+        -------
+        forecast : array_like
+            Array of out-of-sample forecasts
+        """
+
+        return self._model_results.get_forecast(steps)
 
 class ProphetEstimator(TimeSeriesEstimator):
     """
