@@ -31,11 +31,25 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
         """
         pass
 
-    def score(self, real_values: pandas.Series, predictions: pandas.Series) -> float:
+    def score(self, real_values: numpy.ndarray, predictions: numpy.ndarray) -> float:
         """
-        Outputs a metric indicating how fit is a timeseries model
+        Return the mean absolute error (MAE) on the given data and the predictions.
+
+        Parameters
+        ----------
+        real_values : array-like of shape (n_samples, 1)
+            Real samples of the series
+        
+        predictions : array-like of shape (n_samples, 1)
+            Forecasted values of the series
+        
+        Returns
+        -------
+        score : float
+            Mean absolute error of real values and predicted ones
         """
-        pass
+        from sklearn.metrics import mean_absolute_error
+        return mean_absolute_error(real_values, predictions)
 
 class ARIMAEstimator(TimeSeriesEstimator):
     """
