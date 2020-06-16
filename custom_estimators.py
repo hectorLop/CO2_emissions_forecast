@@ -124,8 +124,25 @@ class ARIMAEstimator(TimeSeriesEstimator):
     def fit(self, data: numpy.ndarray) -> self._model_results:
         """
         Fits the given data to the model.
+
+        Parameters
+        ----------
+        data : array_like
+            The observed time-series
+        
+        Returns
+        -------
+        model_results: SARIMAXResults
+            Results of the fitting model
         """
-        pass
+        self._model = SARIMAX(data, order=self._order,
+                              seasonal_order=self._seasonal_order,
+                              enforce_stationarity=self._enforce_stationary,
+                              enforce_invertibility=self._enforce_invertibility)
+
+        self._model_results = self._model.fit()
+        
+        return self._model_results
 
     def predict(self):
         pass
