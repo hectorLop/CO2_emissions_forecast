@@ -3,6 +3,7 @@ from sklearn.base import BaseEstimator
 import pandas
 import numpy
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from fbprophet import Prophet
 
 class TimeSeriesEstimator(BaseEstimator, ABC):
     """
@@ -54,7 +55,7 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
 
 class ARIMAEstimator(TimeSeriesEstimator):
     """
-    This class wraps an SARIMAX model into an Estimator
+    This class wraps up an SARIMAX model into an Estimator
 
     Parameters
     ----------
@@ -132,7 +133,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         
         Returns
         -------
-        model_results : ARIMAEstimator
+        self : ARIMAEstimator
             Self ARIMAEstimator object
         """
         self._model = SARIMAX(data, order=self._order,
@@ -166,14 +167,80 @@ class ARIMAEstimator(TimeSeriesEstimator):
 
 class ProphetEstimator(TimeSeriesEstimator):
     """
-    This class wraps a Prophet model into an Estimator
+    This class wraps up a Prophet model into an Estimator.
+
+    Parameters
+    ----------
+    seasonality_mode : String
+        Kind of seasonality, additive or multiplicative.
+        Default is additive.
+    year_seasonality : String, bool or integer
+        Can be 'auto', True, False, or a number of Fourier terms to generate.
+        Default is auto
+    weekly_seasonality: Fit weekly seasonality.
+        Can be 'auto', True, False, or a number of Fourier terms to generate.
+        Default is auto
+    daily_seasonality: Fit daily seasonality.
+        Can be 'auto', True, False, or a number of Fourier terms to generate.
+        Default is auto
+    
+    Attributes
+    ----------
+    model : Prophet
+        Prophet object containing the model. Initialized with default parameters.
+
+    Notes
+    -----
+    This class extends TimeSeriesEstimator in order to be able to be used
+    in sklearn Pipelines and GridSearchCV.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, seasonality_mode='additive', yearly_seasonality='auto',
+                 weekly_seasonality='auto', daily_seasonality='auto'):              
+        self._model = Prophet(seasonality_mode=seasonality_mode,
+                              yearly_seasonality=yearly_seasonality,
+                              weekly_seasonality=weekly_seasonality,
+                              daily_seasonality=daily_seasonality)
+        
+    def fit(self, data: pandas.DataFrame) -> self:
+        """
+        Fits the model with the fiven data.
 
-    def fit(self):
-        pass
+        Parameters
+        ----------
+        data : pandas.DataFrame
+            DataFrame containing the history. Must have columns
+            ds (date type) and y (values).
+        
+        Returns
+        -------
+        self : ProphetEstimator
+            Self ProphetEstimator object with fitted model
+        """
+        self._model.fit(data)
 
-    def predict(self):
-        pass
+        return self
+
+    def predict(self, steps=48, freq='H') -> pandas.DataFrame:
+        """
+        Returns a forecast of a given number of steps in the future.
+
+        Parameters
+        ----------
+        steps : integer
+            Number of steps to predict in the future. It is used to create
+            the future dataframe. Default is 48.
+        freq : String
+            Frequency of the future dataframe. Default is 'H', which 
+            refers to hourly predictions.
+        
+        Returns
+        -------
+        forecast : pandas.DataFrame
+            DataFrame with forecasted values
+        """
+        future_df = self._model.make_future_dataframe(periods=steps, freq=freq)
+
+        forecast = self._model.predict(future_df)
+
+        return forecast
