@@ -3,6 +3,7 @@ from sklearn.base import BaseEstimator
 import pandas
 import numpy
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from fbprophet import Prophet
 
 class TimeSeriesEstimator(BaseEstimator, ABC):
     """
@@ -54,7 +55,7 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
 
 class ARIMAEstimator(TimeSeriesEstimator):
     """
-    This class wraps an SARIMAX model into an Estimator
+    This class wraps up an SARIMAX model into an Estimator
 
     Parameters
     ----------
@@ -166,14 +167,50 @@ class ARIMAEstimator(TimeSeriesEstimator):
 
 class ProphetEstimator(TimeSeriesEstimator):
     """
-    This class wraps a Prophet model into an Estimator
+    This class wraps up a Prophet model into an Estimator.
+
+    Parameters
+    ----------
+    seasonality_mode : String
+        Kind of seasonality, additive or multiplicative.
+        Default is additive.
+    year_seasonality : String, bool or integer
+        Can be 'auto', True, False, or a number of Fourier terms to generate.
+        Default is auto
+    weekly_seasonality: Fit weekly seasonality.
+        Can be 'auto', True, False, or a number of Fourier terms to generate.
+        Default is auto
+    daily_seasonality: Fit daily seasonality.
+        Can be 'auto', True, False, or a number of Fourier terms to generate.
+        Default is auto
+    
+    Attributes
+    ----------
+    model : Prophet
+        Prophet object containing the model. Initialized with default parameters.
+
+    Notes
+    -----
+    This class extends TimeSeriesEstimator in order to be able to be used
+    in sklearn Pipelines and GridSearchCV.
     """
 
-    def __init__(self):
+    def __init__(self, seasonality_mode='additive', yearly_seasonality='auto',
+                 weekly_seasonality='auto', daily_seasonality='auto'):              
+        self._model = Prophet(seasonality_mode=seasonality_mode,
+                              yearly_seasonality=yearly_seasonality,
+                              weekly_seasonality=weekly_seasonality,
+                              daily_seasonality=daily_seasonality)
+        
+    def fit(self) -> self:
+        """
+        Fits the model with the fiven data.
+        """
         pass
 
-    def fit(self):
-        pass
+    def predict(self) -> pandas.DataFrame:
+        """
+        Returns a forecast of a given number of steps in the future.
+        """
 
-    def predict(self):
         pass
