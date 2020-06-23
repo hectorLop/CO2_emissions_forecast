@@ -221,9 +221,26 @@ class ProphetEstimator(TimeSeriesEstimator):
 
         return self
 
-    def predict(self) -> pandas.DataFrame:
+    def predict(self, steps=48, freq='H') -> pandas.DataFrame:
         """
         Returns a forecast of a given number of steps in the future.
-        """
 
-        pass
+        Parameters
+        ----------
+        steps : integer
+            Number of steps to predict in the future. It is used to create
+            the future dataframe. Default is 48.
+        freq : String
+            Frequency of the future dataframe. Default is 'H', which 
+            refers to hourly predictions.
+        
+        Returns
+        -------
+        forecast : pandas.DataFrame
+            DataFrame with forecasted values
+        """
+        future_df = self._model.make_future_dataframe(periods=steps, freq=freq)
+
+        forecast = self._model.predict(future_df)
+
+        return forecast
