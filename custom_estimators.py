@@ -133,7 +133,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         
         Returns
         -------
-        model_results : ARIMAEstimator
+        self : ARIMAEstimator
             Self ARIMAEstimator object
         """
         self._model = SARIMAX(data, order=self._order,
@@ -202,11 +202,24 @@ class ProphetEstimator(TimeSeriesEstimator):
                               weekly_seasonality=weekly_seasonality,
                               daily_seasonality=daily_seasonality)
         
-    def fit(self) -> self:
+    def fit(self, data: pandas.DataFrame) -> self:
         """
         Fits the model with the fiven data.
+
+        Parameters
+        ----------
+        data : pandas.DataFrame
+            DataFrame containing the history. Must have columns
+            ds (date type) and y (values).
+        
+        Returns
+        -------
+        self : ProphetEstimator
+            Self ProphetEstimator object with fitted model
         """
-        pass
+        self._model.fit(data)
+
+        return self
 
     def predict(self) -> pandas.DataFrame:
         """
