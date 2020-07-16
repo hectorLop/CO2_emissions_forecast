@@ -8,18 +8,18 @@ class RemoveDuplicates(TransformerMixin):
     Parameters
     ----------
     column_name : string
-        Column name which contains duplicates
+        Column name containing duplicates
 
     Attributes
     ----------
     column_name : string
-        Column name which contains duplicates
+        Column name containing duplicates
     """
 
     def __init__(self, column_name: str) -> None:
         self._column_name = column_name
 
-    def fit(self, X: pandas.DataFrame, y=None):
+    def fit(self, X: pandas.DataFrame, y=None) -> self:
         """
         Standard behaviour for fit methods
 
@@ -37,7 +37,7 @@ class RemoveDuplicates(TransformerMixin):
 
     def transform(self, X: pandas.DataFrame) -> pandas.DataFrame:
         """
-        Drop the duplicated dates from the given data
+        Drop the duplicated dates from given data
 
         Parameters
         ----------
@@ -53,12 +53,57 @@ class RemoveDuplicates(TransformerMixin):
 
         return X
 
-class RemoveErrors(TransformerMixin):
-    def __init__(self) -> None:
-        pass
+class RemoveDateErrors(TransformerMixin):
+    """
+    This class defines a Transformer to remove dates errors
 
-    def fit(self, X, y=None):
-        pass
+    Parameters
+    ----------
+    column_name : string
+        Column name containing errors
 
-    def transform(self, X, y=None):
-        pass
+    Attributes
+    ----------
+    column_name : string
+        Column name containing errors
+    """
+    
+    def __init__(self, column_name: str) -> None:
+        self._column_name = column_name
+
+    def fit(self, X: pandas.DataFrame, y=None) -> self:
+        """
+        Standard behaviour for fit methods
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        self : RemoveDuplicates
+            Self object
+        """
+        return self
+
+    def transform(self, X: pandas.DataFrame, y=None) -> pandas.DataFrame:
+        """
+        Remove dates errors from given data
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame that contains no errors
+        """
+        # Replace dates with 2A by 02
+        X[self._column_name] = X[self._column_name].str.replace('2A', '02')
+        # Use the NOT simbol (~) to return the dataset without rows containing a 2B
+        X = X[~X[self._column_name].str.contains("2B")]
+
+        return X
