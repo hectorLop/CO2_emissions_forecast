@@ -1,3 +1,4 @@
+from __future__ import annotations
 from sklearn.base import TransformerMixin
 import pandas
 
@@ -19,7 +20,7 @@ class RemoveDuplicates(TransformerMixin):
     def __init__(self, column_name: str) -> None:
         self._column_name = column_name
 
-    def fit(self, X: pandas.DataFrame, y=None) -> self:
+    def fit(self, X: pandas.DataFrame, y=None) -> RemoveDuplicates:
         """
         Standard behaviour for fit methods
 
@@ -67,11 +68,11 @@ class RemoveDateErrors(TransformerMixin):
     column_name : string
         Column name containing errors
     """
-    
+
     def __init__(self, column_name: str) -> None:
         self._column_name = column_name
 
-    def fit(self, X: pandas.DataFrame, y=None) -> self:
+    def fit(self, X: pandas.DataFrame, y=None) -> RemoveDateErrors:
         """
         Standard behaviour for fit methods
 
@@ -102,7 +103,8 @@ class RemoveDateErrors(TransformerMixin):
             DataFrame that contains no errors
         """
         # Replace dates with 2A by 02
-        X[self._column_name] = X[self._column_name].str.replace('2A', '02')
+        #X[self._column_name] = 
+        X[self._column_name].str.replace('2A', '02')
         # Use the NOT simbol (~) to return the dataset without rows containing a 2B
         X = X[~X[self._column_name].str.contains("2B")]
 
