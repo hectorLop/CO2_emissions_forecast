@@ -103,7 +103,6 @@ class RemoveDateErrors(TransformerMixin):
             DataFrame that contains no errors
         """
         # Replace dates with 2A by 02
-        #X[self._column_name] = 
         X[self._column_name].str.replace('2A', '02')
         # Use the NOT simbol (~) to return the dataset without rows containing a 2B
         X = X[~X[self._column_name].str.contains("2B")]
