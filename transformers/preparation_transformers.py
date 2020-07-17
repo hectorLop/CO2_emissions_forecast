@@ -1,6 +1,7 @@
 from __future__ import annotations
 from sklearn.base import TransformerMixin
 import pandas
+import numpy
 
 class ConvertToDatetime(TransformerMixin):
     """
@@ -32,7 +33,7 @@ class ConvertToDatetime(TransformerMixin):
         
         Returns
         -------
-        self : RemoveDuplicates
+        self : ConvertToDatetime
             Self object
         """
         return self
@@ -56,14 +57,61 @@ class ConvertToDatetime(TransformerMixin):
         return X
 
 class SortByIndex(TransformerMixin):
-    def __init__(self) -> None:
-        pass
+    """
+    This class defines a Transformer to sort the dataset by the index, which 
+    is the date's column.
+
+    Parameters
+    ----------
+    column_name : string
+        Name of the column containing the dates
+
+    Attributes
+    ----------
+    column_name : string
+        Name of the column containing the dates
+    """
+
+    def __init__(self, column_name: str) -> None:
+        self._column_name = column_name
 
     def fit(self, X: pandas.DataFrame, y=None) -> SortByIndex:
-        pass
+        """
+        Standard behaviour for fit methods
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        self : SortByIndex
+            Self object
+        """
+        return self
 
     def transform(self, X: pandas.DataFrame) -> pandas.DataFrame:
-        pass
+        """
+        Sort the dataset by index
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            DataFrame with the data
+
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame sorted by the index
+        """
+        if not isinstance(X.index, pandas.DatetimeIndex):
+            # Set the datetime column as the index
+            X = X.set_index(self._column_name)
+
+        X = X.sort_index()
+
+        return X
 
 class SetFrequency(TransformerMixin):
     def __init__(self) -> None:
