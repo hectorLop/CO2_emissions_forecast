@@ -102,9 +102,14 @@ class RemoveDateErrors(TransformerMixin):
         X : pandas.DataFrame
             DataFrame that contains no errors
         """
-        # Replace dates with 2A by 02
-        X[self._column_name].str.replace('2A', '02')
-        # Use the NOT simbol (~) to return the dataset without rows containing a 2B
-        X = X[~X[self._column_name].str.contains("2B")]
+        # Creates a deep copy to avoid a CopyWarning
+        new_dataset = X.copy()
 
-        return X
+        # Condition to get all dates containing '2A'
+        condition = new_dataset[self._column_name].str.contains('2A')
+        # Replace 2A by 02 on dates matching the condition
+        new_dataset.loc[condition, self._column_name] = new_dataset.loc[condition, self._column_name].str.replace('2A', '02')
+        # Use the NOT simbol (~) to return the dataset without rows containing a 2B
+        new_dataset = new_dataset[~new_dataset[self._column_name].str.contains("2B")]
+
+        return new_dataset
