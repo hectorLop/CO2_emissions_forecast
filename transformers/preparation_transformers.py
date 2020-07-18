@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Type
 from sklearn.base import TransformerMixin
 import pandas
 import numpy
@@ -114,14 +115,63 @@ class SortByIndex(TransformerMixin):
         return X
 
 class SetFrequency(TransformerMixin):
-    def __init__(self) -> None:
-        pass
+    """
+    This class defines a Transformer set a frequency to the
+    datetime index of the dataset.
+
+    The frequency is the time difference between observations.
+
+    Parameters
+    ----------
+    frequency : string
+        Observation's frequency
+
+    Attributes
+    ----------
+    frequency : string
+        Observation's frequency
+    """
+
+    def __init__(self, frequency: str) -> None:
+        self._frequency = frequency
 
     def fit(self, X: pandas.DataFrame, y=None) -> SetFrequency:
-        pass
+        """
+        Standard behaviour for fit methods
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        self : SortByIndex
+            Self object
+        """
+        return self
 
     def transform(self, X: pandas.DataFrame) -> pandas.DataFrame:
-        pass
+        """
+        Set a frequency on the dataset
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            DataFrame without index frequency
+
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame with index frequency
+        """
+        if not isinstance(X.index, pandas.DatetimeIndex):
+            raise TypeError('Index must be a DatetimeIndex')
+        
+        # Convert the timeseries to the given frequency
+        X = X.asfreq(self._frequency)
+
+        return X
 
 class Interpolation(TransformerMixin):
     def __init__(self) -> None:
