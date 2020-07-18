@@ -174,14 +174,60 @@ class SetFrequency(TransformerMixin):
         return X
 
 class Interpolation(TransformerMixin):
+    """
+    This class defines a Transformer to impute the missing values
+    using interpolation
+
+    The frequency is the time difference between observations.
+    """
+
     def __init__(self) -> None:
-        pass
+        self._exist_missing_values = False
 
     def fit(self, X: pandas.DataFrame, y=None) -> Interpolation:
-        pass
+        """
+        Standard behaviour for fit methods
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        self : SortByIndex
+            Self object
+        """
+        # Get a series with the missing values for each column
+        missing_values = X.isnull().sum()
+
+        # Iterate through the series to check the missing values of each column
+        for index, value in missing_values.iteritems():
+            if value != 0:
+                self._exist_missing_values = True
+                break
+
+        return self
 
     def transform(self, X: pandas.DataFrame) -> pandas.DataFrame:
-        pass
+        """
+        Imputes the missing values using interpolation
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            DataFrame containing missing values
+
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame without missing values
+        """
+        if self._exist_missing_values:
+            # Interpolation using time method
+            X = X.interpolate(method='time')
+
+        return X
 
 class Resampler(TransformerMixin):
     def __init__(self) -> None:
