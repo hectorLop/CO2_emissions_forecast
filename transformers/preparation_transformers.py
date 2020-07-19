@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import Type
 from sklearn.base import TransformerMixin
 import pandas
-import numpy
+from scipy.stats import boxcox
+from scipy.special import inv_boxcox
 
 class ConvertToDatetime(TransformerMixin):
     """
@@ -277,7 +278,7 @@ class Resampler(TransformerMixin):
         Parameters
         ----------
         X : pandas.DataFrame
-            DataFrame int its original form
+            DataFrame containing the original data
 
         Returns
         -------
@@ -292,11 +293,77 @@ class Resampler(TransformerMixin):
         return new_dataset
 
 class BoxCox(TransformerMixin):
-    def __init__(self) -> None:
-        pass
+    """
+    This class defines a Transformer to apply BoxCox transformation
+    to the data
+
+    Parameters
+    ----------
+    column_name : str
+        Elements Column's name to be transformed
+
+    Attributes
+    ----------
+    lambda : float
+        Scalar that maximizes the log-likelihood function
+    column_name : str
+        Elements Column's name to be transformed
+    """
+
+    def __init__(self, column_name: str) -> None:
+        self._lambda = 0.0
+        self._column_name = column_name
 
     def fit(self, X: pandas.DataFrame, y=None) -> BoxCox:
-        pass
+        """
+        Standard behaviour for fit methods
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        self : BoxCox
+            Self object
+        """
+        return self
 
     def transform(self, X: pandas.DataFrame) -> pandas.DataFrame:
-        pass
+        """
+        Apply the BoxCox transformation to the data
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            DataFrame containing the original data
+
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame containing transformed data
+        """
+        # Apply the transformation and learn the lambda 
+        X[self._column_name], self._lambda = boxcox(X[self._column_name])
+
+        return X
+
+    def inverse_transform(self, X: pandas.DataFrame, lambda: float) -> pandas.DataFrame:
+        """
+        Revert the data to its original form
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            DataFrame containing transformed data
+
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame containing the original data
+        """
+        # Apply the transformation and learn the lambda 
+        X[self._column_name] = inv_boxcox(X[self._column_name], self._lambda)
+
+        return X
