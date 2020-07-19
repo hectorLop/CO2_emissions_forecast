@@ -146,7 +146,7 @@ class SetFrequency(TransformerMixin):
         
         Returns
         -------
-        self : SortByIndex
+        self : SetFrequency
             Self object
         """
         return self
@@ -186,7 +186,7 @@ class Interpolation(TransformerMixin):
 
     def fit(self, X: pandas.DataFrame, y=None) -> Interpolation:
         """
-        Standard behaviour for fit methods
+        Check the existence of missing values
 
         Parameters
         ----------
@@ -195,7 +195,7 @@ class Interpolation(TransformerMixin):
         
         Returns
         -------
-        self : SortByIndex
+        self : Interpolation
             Self object
         """
         # Get a series with the missing values for each column
@@ -230,14 +230,66 @@ class Interpolation(TransformerMixin):
         return X
 
 class Resampler(TransformerMixin):
-    def __init__(self) -> None:
-        pass
+    """
+    This class defines a Transformer to resample time-series data
+
+    Parameters
+    ----------
+    frequency : str
+        The offset string representing target conversion
+
+    column_name: str
+        Column's name to be resampled
+
+    Attributes
+    ----------
+    frequency : str
+        The offset string representing target conversion
+
+    column_name: str
+        Column's name to be resampled
+    """
+
+    def __init__(self, frequency: str, column_name: str) -> None:
+        self._frequency = frequency
+        self._column_name = column_name
 
     def fit(self, X: pandas.DataFrame, y=None) -> Resampler:
-        pass
+        """
+        Standard behaviour for fit methods
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            Dataframe with the data
+        
+        Returns
+        -------
+        self : Resampler
+            Self object
+        """
+        return self
 
     def transform(self, X: pandas.DataFrame) -> pandas.DataFrame:
-        pass
+        """
+        Resample time-series data
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            DataFrame int its original form
+
+        Returns
+        -------
+        X : pandas.DataFrame
+            DataFrame containing resampled data
+        """
+        # Create the series containing the resampled data
+        new_series = X[self._column_name].resample(self._frequency).mean()
+        # Creates the new dataframe
+        new_dataset = pandas.DataFrame({self._column_name:new_series.values}, index=new_series.index)
+
+        return new_dataset
 
 class BoxCox(TransformerMixin):
     def __init__(self) -> None:
