@@ -68,7 +68,25 @@ def test_set_frequency():
     """
     Test the SetFrequency transformer
     """
-    pass
+    # Creates a list with sorted dates
+    dates_str = ['2020-01-01 20:00', '2020-01-01 21:00',
+                '2020-01-01 22:00', '2020-01-01 23:00']
+    dates = [datetime.strptime(date, '%Y-%m-%d %H:%M') for date in dates_str]
+
+    # Creates the expected dataframe with the sorted dates as index
+    original_dataset = pandas.DataFrame({
+        'Emissions': [1541, 1500, 1512, 1583]
+    }, index=dates)
+
+    set_frequency = SetFrequency('10min')
+
+    result = set_frequency.fit_transform(original_dataset)
+
+    # Get the frequency string from the index
+    result_frequency = result.index.freq.freqstr
+    expected_frequency = '10T'
+
+    assert expected_frequency == result_frequency 
 
 def test_interpolation():
     """
