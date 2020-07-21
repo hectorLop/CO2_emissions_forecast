@@ -186,8 +186,24 @@ def test_Resampler(supply_df):
 
     assert_frame_equal(result, supply_df['hourly_dataframe'])
 
-def test_BoxCox():
+def test_BoxCox(supply_df):
     """
     Test the BoxCox transformer
+
+    Parameters
+    ----------
+    supply_df : dict
+        Dictionary containing two data frames, the first with a frequency
+        of 10 minutes and the last with a frequency of 1 hour.
     """
-    pass
+    original_dataset = supply_df['hourly_dataframe']
+
+    expected_dataset = pandas.DataFrame({
+        'Emissions': [0.693147, 1.609438]
+    }, index=pandas.date_range('20200101 20:00:00', freq='H', periods=2))
+
+    box_cox = BoxCox('Emissions')
+
+    result = box_cox.fit_transform(original_dataset)
+
+    assert_frame_equal(expected_dataset, result)
