@@ -4,6 +4,7 @@ from pandas.testing import assert_frame_equal, assert_index_equal
 import pandas
 import numpy
 from datetime import datetime
+from numpy.testing import assert_equal
 
 @pytest.fixture
 def supply_unordered_dates():
@@ -41,8 +42,8 @@ def test_convert_to_datetime(supply_unordered_dates) -> None:
 
     Parameters
     ----------
-    supply_unsorted_dates : dict
-        Dictionary containing dates as strings and dates as objects
+    supply_unordered_dates : dict
+        Dictionary containing unordered dates as strings and as objects
     """
     # Creates both datasets
     original_dataset = pandas.DataFrame({
@@ -67,8 +68,11 @@ def test_sort_by_index(supply_unordered_dates, supply_sorted_dates):
 
     Parameters
     ----------
-    supply_unsorted_dates : dict
-        Dictionary containing both dates string and dates objects
+    supply_unordered_dates : dict
+        Dictionary containing unordered dates as strings and as objects
+    
+    supply_sorted_dates : dict
+        Dictionary containing sorted dates as strings and as objects
     """  
     # Creates the original dataset without the DatetimeIndex
     original_dataset = pandas.DataFrame({
@@ -93,8 +97,13 @@ def test_sort_by_index(supply_unordered_dates, supply_sorted_dates):
 def test_set_frequency(supply_sorted_dates):
     """
     Test the SetFrequency transformer
+
+    Parameters
+    ----------
+    supply_sorted_dates : dict
+        Dictionary containing sorted dates as strings and as objects
     """
-    # Creates the expected dataframe with the sorted dates as index
+    # Creates the original dataframe with a DatetimeIndex and no frequency
     original_dataset = pandas.DataFrame({
         'Emissions': [1541, 1500, 1512, 1583]
     }, index=supply_sorted_dates['sorted_dates'])
@@ -109,11 +118,27 @@ def test_set_frequency(supply_sorted_dates):
 
     assert expected_frequency == result_frequency 
 
-def test_interpolation():
+def test_interpolation(supply_sorted_dates):
     """
     Test the Interpolation transformer
+
+    Parameters
+    ----------
+    supply_sorted_dates : dict
+        Dictionary containing sorted dates as strings and as objects
     """
-    pass
+    # Creates the original dataframe containing missing values
+    original_dataset = pandas.DataFrame({
+        'Emissions': [1541, numpy.nan, 1512, numpy.nan]
+    }, index=supply_sorted_dates['sorted_dates'])
+
+    interpolation = Interpolation()
+
+    result = interpolation.fit_transform(original_dataset)
+    # Gets the number of nans from the Emissions column, index 0
+    number_of_nans = result.isnull().sum()[0]
+
+    assert_equal(number_of_nans, 0)
 
 def test_Resampler():
     """
