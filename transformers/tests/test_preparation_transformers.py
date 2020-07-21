@@ -36,6 +36,34 @@ def supply_sorted_dates():
 
     return sorted_dates_dict
 
+@pytest.fixture
+def supply_df():
+    """
+    Creates a dictionary containing two data frames, the first with
+    a frequency of 10 minutes and the last with a frequency of 1 hour.
+    """
+    # Creates the emissions values and the dates with 10min frequency
+    emissions_values = [2, 2, 2, 2, 2, 2, 5, 5, 5, 5 ,5, 5]
+    dates_by_10_min = pandas.date_range('20200101 20:00:00', freq='10T', periods=12)
+
+    minutes_dataframe = pandas.DataFrame({
+        'Emissions': emissions_values
+    }, index=dates_by_10_min)
+
+    # Creates the emissions mean and the dates with 1 hour frequency
+    mean_emissions = [2, 5]
+    dates_by_hour = pandas.date_range('20200101 20:00:00', freq='H', periods=2)
+
+    hourly_dataframe = pandas.DataFrame({
+        'Emissions': mean_emissions
+    }, index=dates_by_hour)
+
+    dataframes_dict = {}
+    dataframes_dict['minutes_dataframe'] = minutes_dataframe
+    dataframes_dict['hourly_dataframe'] = hourly_dataframe
+
+    return dataframes_dict
+
 def test_convert_to_datetime(supply_unordered_dates) -> None:
     """
     Test the ConvertToDatetime transformer
@@ -140,11 +168,23 @@ def test_interpolation(supply_sorted_dates):
 
     assert_equal(number_of_nans, 0)
 
-def test_Resampler():
+def test_Resampler(supply_df):
     """
     Test the Resampler transformer
+
+    Parameters
+    ----------
+    supply_df : dict
+        Dictionary containing two data frames, the first with a frequency
+        of 10 minutes and the last with a frequency of 1 hour.
     """
-    pass
+    original_dataset = supply_df['minutes_dataframe']
+
+    resampler = Resampler('H', 'Emissions')
+
+    result = resampler.fit_transform(original_dataset)
+
+    assert_frame_equal(result, supply_df['hourly_dataframe'])
 
 def test_BoxCox():
     """
