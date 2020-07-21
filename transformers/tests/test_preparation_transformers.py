@@ -5,22 +5,53 @@ import pandas
 import numpy
 from datetime import datetime
 
-def test_convert_to_datetime():
+@pytest.fixture
+def supply_unordered_dates():
     """
-    Test the ConvertToDatetime transformer
+    Creates a dictionary containing unordered dates as string and as objects
     """
-    # Creates both the dates as strings and as datetime objects
     dates_str = ['2020-01-01 21:00', '2020-01-01 22:00',
-                '2020-01-01 23:00', '2020-01-01 21:00']
+                '2020-01-01 23:00', '2020-01-01 20:00']
     dates = [datetime.strptime(date, '%Y-%m-%d %H:%M') for date in dates_str]
 
+    dates_dict = {}
+    dates_dict['dates_str'] = dates_str
+    dates_dict['dates'] = dates
+
+    return dates_dict
+
+@pytest.fixture
+def supply_sorted_dates():
+    """
+    Creates a dictionary containing sorted dates as strings and as objects
+    """
+    sorted_dates_str = ['2020-01-01 20:00', '2020-01-01 21:00',
+                        '2020-01-01 22:00', '2020-01-01 23:00']
+    sorted_dates = [datetime.strptime(date, '%Y-%m-%d %H:%M') for date in sorted_dates_str]
+
+    sorted_dates_dict = {}
+    sorted_dates_dict['sorted_dates_str'] = sorted_dates_str
+    sorted_dates_dict['sorted_dates'] = sorted_dates
+
+    return sorted_dates_dict
+
+def test_convert_to_datetime(supply_unordered_dates) -> None:
+    """
+    Test the ConvertToDatetime transformer
+
+    Parameters
+    ----------
+    supply_unsorted_dates : dict
+        Dictionary containing dates as strings and dates as objects
+    """
+    # Creates both datasets
     original_dataset = pandas.DataFrame({
-        'Dates': dates_str,
+        'Dates': supply_unordered_dates['dates_str'],
         'Emissions': [1500, 1512, 1583, 1541]
     })
 
     expected_dataset = pandas.DataFrame({
-        'Dates': dates,
+        'Dates': supply_unordered_dates['dates'],
         'Emissions': [1500, 1512, 1583, 1541]
     })
 
@@ -30,30 +61,25 @@ def test_convert_to_datetime():
 
     assert_frame_equal(expected_dataset, result)
 
-def test_sort_by_index():
+def test_sort_by_index(supply_unordered_dates, supply_sorted_dates):
     """
     Test the SortByIndex transformer
-    """
-    # Creates a list with unsorted dates
-    dates_str = ['2020-01-01 21:00', '2020-01-01 22:00',
-                '2020-01-01 23:00', '2020-01-01 20:00']
-    dates = [datetime.strptime(date, '%Y-%m-%d %H:%M') for date in dates_str]
 
+    Parameters
+    ----------
+    supply_unsorted_dates : dict
+        Dictionary containing both dates string and dates objects
+    """  
     # Creates the original dataset without the DatetimeIndex
     original_dataset = pandas.DataFrame({
-        'Dates': dates,
+        'Dates': supply_unordered_dates['dates'],
         'Emissions': [1500, 1512, 1583, 1541]
     })
-
-    # Creates a list with sorted dates
-    sorted_dates_str = ['2020-01-01 20:00', '2020-01-01 21:00',
-                        '2020-01-01 22:00', '2020-01-01 23:00']
-    sorted_dates = [datetime.strptime(date, '%Y-%m-%d %H:%M') for date in sorted_dates_str]
 
     # Creates the expected dataframe with the sorted dates as index
     expected_dataset = pandas.DataFrame({
         'Emissions': [1541, 1500, 1512, 1583]
-    }, index=sorted_dates)
+    }, index=supply_sorted_dates['sorted_dates'])
 
     # Set the index name to be equal as the original dataset
     expected_dataset.index.name = 'Dates'
@@ -64,19 +90,14 @@ def test_sort_by_index():
 
     assert_frame_equal(result, expected_dataset)
 
-def test_set_frequency():
+def test_set_frequency(supply_sorted_dates):
     """
     Test the SetFrequency transformer
     """
-    # Creates a list with sorted dates
-    dates_str = ['2020-01-01 20:00', '2020-01-01 21:00',
-                '2020-01-01 22:00', '2020-01-01 23:00']
-    dates = [datetime.strptime(date, '%Y-%m-%d %H:%M') for date in dates_str]
-
     # Creates the expected dataframe with the sorted dates as index
     original_dataset = pandas.DataFrame({
         'Emissions': [1541, 1500, 1512, 1583]
-    }, index=dates)
+    }, index=supply_sorted_dates['sorted_dates'])
 
     set_frequency = SetFrequency('10min')
 
