@@ -44,3 +44,36 @@ def test_cleaning_pipeline():
     cleaned_data = cleaned_data.reset_index(drop=True)
 
     assert_frame_equal(cleaned_data, expected_df)
+
+def test_preparation_pipeline():
+    """
+    Test the full preparation pipeline
+    """
+    preparation_pipeline = Pipeline([
+        ('convert_to_datetime', ConvertToDatetime('Dates')),
+        ('sort_by_index', SortByIndex('Dates')),
+        ('set_frequency', SetFrequency('10min')),
+        ('interpolation', Interpolation()),
+        ('resampler', Resampler('H', 'Emissions')),
+        ('boxcox', BoxCox('Emissions'))
+    ])
+
+    original_df = pandas.DataFrame({
+        'Dates': ['2020-01-01 01:00', '2020-01-01 01:10',
+                '2020-01-01 01:40', '2020-01-01 01:50',
+                '2020-01-01 01:20', '2020-01-01 01:30',
+                '2020-01-01 02:00', '2020-01-01 02:10',
+                '2020-01-01 02:20', '2020-01-01 02:30',
+                '2020-01-01 02:40', '2020-01-01 02:50'],
+        'Emissions': [2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5, 5]
+    })
+
+    expected_df = pandas.DataFrame({
+        'Emissions': [0.693147, 1.609438]
+    }, index=pandas.date_range('20200101 01:00:00', freq='H', periods=2))
+    # Set the name of the index the same as the name of the date column of original_df
+    expected_df.index.name = 'Dates'
+
+    prepared_df = preparation_pipeline.fit_transform(original_df)
+
+    assert_frame_equal(prepared_df, expected_df)
