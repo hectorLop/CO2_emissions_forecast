@@ -103,22 +103,18 @@ def test_preparation_pipeline(supply_pipelines):
 
     assert_frame_equal(prepared_df, expected_df)
 
-def test_cleaning_and_preparation_pipelines():
+def test_cleaning_and_preparation_pipelines(supply_pipelines):
     """
-    Test both the cleaning and preparation pipeliness
-    """
-    cleaning_pipeline = Pipeline([
-        ('remove_duplicates', RemoveDuplicates('Dates')),
-        ('remove_errors', RemoveDateErrors('Dates'))
-    ])
+    Test both the cleaning and preparation pipelines combined
 
-    preparation_pipeline = Pipeline([
-        ('convert_to_datetime', ConvertToDatetime('Dates')),
-        ('sort_by_index', SortByIndex('Dates')),
-        ('set_frequency', SetFrequency('10min')),
-        ('interpolation', Interpolation()),
-        ('resampler', Resampler('H', 'Emissions')),
-        ('boxcox', BoxCox('Emissions'))
+    Parameters
+    ----------
+    supply_pipelines : dict
+        Dictionary containing both pipelines
+    """
+    combined_pipeline = Pipeline([
+        ('cleaning', supply_pipelines['cleaning']),
+        ('preparation', supply_pipelines['preparation'])
     ])
 
     original_df = pandas.DataFrame({
@@ -130,6 +126,15 @@ def test_cleaning_and_preparation_pipelines():
                 '2020-01-01 2A:20', '2020-01-01 2A:30',
                 '2020-01-01 2A:40', '2020-01-01 2A:50',
                 '2020-01-01 2B:00', '2020-01-01 2B:10'],
-        'Emissions': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                    12, 13, 14, 15, 16]
+        'Emissions': [2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5,
+                    5, 5, 5, 8, 8]
     })
+
+    expected_df = pandas.DataFrame({
+        'Emissions': [0.693147, 1.609438]
+    }, index=pandas.date_range('20200101 01:00:00', freq='H', periods=2))
+    expected_df.index.name = 'Dates'
+
+    result = combined_pipeline.fit_transform(original_df)
+
+    assert_frame_equal(result, expected_df)
