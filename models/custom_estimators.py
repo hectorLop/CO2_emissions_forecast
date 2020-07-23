@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from sklearn.base import BaseEstimator
 import pandas
@@ -18,7 +19,7 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
         pass
     
     @abstractmethod
-    def fit(self, **kwargs) -> self:
+    def fit(self, **kwargs) -> TimeSeriesEstimator:
         """
         Fit abstract method to be implemented with custom keyword parameters
         in each estimator.
@@ -51,6 +52,7 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
             Mean absolute error of real values and predicted ones
         """
         from sklearn.metrics import mean_absolute_error
+
         return mean_absolute_error(real_values, predictions)
 
 class ARIMAEstimator(TimeSeriesEstimator):
@@ -122,7 +124,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         self._enforce_invertibility = enforce_invertibility
 
 
-    def fit(self, data: numpy.ndarray) -> self:
+    def fit(self, data: numpy.ndarray) -> ARIMAEstimator:
         """
         Fits the given data to the model.
 
@@ -202,7 +204,7 @@ class ProphetEstimator(TimeSeriesEstimator):
                               weekly_seasonality=weekly_seasonality,
                               daily_seasonality=daily_seasonality)
         
-    def fit(self, data: pandas.DataFrame) -> self:
+    def fit(self, data: pandas.DataFrame) -> ProphetEstimator:
         """
         Fits the model with the fiven data.
 
