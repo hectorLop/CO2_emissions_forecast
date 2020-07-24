@@ -124,7 +124,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         self._enforce_invertibility = enforce_invertibility
 
 
-    def fit(self, data: numpy.ndarray) -> ARIMAEstimator:
+    def fit(self, data: numpy.ndarray, y=None) -> ARIMAEstimator:
         """
         Fits the given data to the model.
 
@@ -164,8 +164,9 @@ class ARIMAEstimator(TimeSeriesEstimator):
         forecast : array_like
             Array of out-of-sample forecasts
         """
-
-        return self._model_results.get_forecast(steps)
+        forecast = self._model_results.get_forecast(steps)
+        
+        return forecast.predicted_mean
 
 class ProphetEstimator(TimeSeriesEstimator):
     """
@@ -204,7 +205,7 @@ class ProphetEstimator(TimeSeriesEstimator):
                               weekly_seasonality=weekly_seasonality,
                               daily_seasonality=daily_seasonality)
         
-    def fit(self, data: pandas.DataFrame) -> ProphetEstimator:
+    def fit(self, data: pandas.DataFrame, y=None) -> ProphetEstimator:
         """
         Fits the model with the fiven data.
 
@@ -219,6 +220,10 @@ class ProphetEstimator(TimeSeriesEstimator):
         self : ProphetEstimator
             Self ProphetEstimator object with fitted model
         """
+        if 'ds' not in data.columns or 'y' not in data.columns:
+            data = data.reset_index()
+            data = data.rename(columns={"Dates": "ds", "Emissions": "y"})
+
         self._model.fit(data)
 
         return self
@@ -245,4 +250,4 @@ class ProphetEstimator(TimeSeriesEstimator):
 
         forecast = self._model.predict(future_df)
 
-        return forecast
+        return forecast[['yhat']]
