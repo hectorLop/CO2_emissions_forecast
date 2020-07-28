@@ -25,6 +25,9 @@ class ARIMAGridSearch(GridSearch):
 
     Attributes
     ----------
+    _range_limit : int
+        Limit number to create the parameter combinations
+
     _pdq : tuple
         Tuple containing (p, d, q) parameters for the non-seasonal part
 
@@ -32,21 +35,22 @@ class ARIMAGridSearch(GridSearch):
         Tuple containing (p, d, q)m parameters for the seasonal part
     """
 
-    def __init__(self) -> None:
-        self._pdq, self._seasonal_pdq = self.__generate_initial_values()
+    def __init__(self, range_limit: int) -> None:
+        self._range_limit = range_limit
+        self._pdq, self._seasonal_pdq = self.__generate_combinations_of_parameters()
     
-    def __generate_initial_values(self):
+    def __generate_combinations_of_parameters(self):
         """
         Generates the parameters combination for grid search
         """
         # Assign initial values for each parameter
-        p = d = q = range(0, 2)
+        p = d = q = range(0, self._range_limit)
 
         # Generate all different combinations of p, d and q triplets
         pdq = list(itertools.product(p, d, q))
 
         # Generate all different combinations of seasonal p, q and q triplets
-        seasonal_pdq = [(x[0], x[1], x[2], 168) for x in list(itertools.product(p, d, q))]
+        seasonal_pdq = [(x[0], x[1], x[2], 2) for x in list(itertools.product(p, d, q))]
 
         return pdq, seasonal_pdq
 
@@ -74,15 +78,14 @@ class ARIMAGridSearch(GridSearch):
 
         for param in self._pdq:
             for seasonal_param in self._seasonal_pdq:
-                
-                model = ARIMAEstimator(train_data, order=param, seasonal_order=seasonal_param)
+                model = ARIMAEstimator(order=param, seasonal_order=seasonal_param)
 
-                results = model.fit()
+                results = model.fit(train_data)
         
-                predictions = results.get_forecast()
+                predictions = results.predict()
                 #predictions.predicted_mean = scipy.special.inv_boxcox(predictions.predicted_mean, lam)
         
-                mae = model.score(test_data, predictions.values)
+                mae = model.score(test_data.values, predictions.values)
         
                 if mae < min_mae:
                     min_mae = mae
@@ -93,3 +96,5 @@ class ARIMAGridSearch(GridSearch):
         results['MAE'] = min_mae
         results['Params'] = (best_params, best_seasonal_params)
         results['Name'] = 'ARIMA'
+
+        return results
