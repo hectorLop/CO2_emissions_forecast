@@ -98,3 +98,54 @@ class ARIMAGridSearch(GridSearch):
         results['Name'] = 'ARIMA'
 
         return results
+
+class ProphetGridSearch(GridSearch):
+    """
+    Grid Search for Prophet model
+    """
+
+    def __init__(self) -> None:
+        self._seasonality_modes = ['additive', 'multiplicative']
+
+    def grid_search(self, train_data: pandas.DataFrame, test_data: pandas.DataFrame) -> dict:
+        """
+        Apply grid search on Prophet model
+
+        Parameters
+        ----------
+        train_data : pandas.DataFrame
+            DataFrame containing the training data
+
+        test_data : pandas.DataFrame
+            DataFrame containing the test data
+
+        Returns
+        -------
+        results : dict
+            Dictionary containing grid search results
+        """
+        # Best parameters variables
+        min_mae = numpy.inf
+        best_mode = ""
+
+        for mode in self._seasonality_modes:
+            model = ProphetEstimator(seasonality_mode=mode)
+
+            model.fit(train_data)
+        
+            predictions = model.predict()
+            print("PREDICTTTTTTTTTTTTTTTT")
+            print(test_data.values.shape)
+            print(predictions.values.shape)
+            mae = model.score(test_data.values, predictions.values)
+        
+            if mae < min_mae:
+                min_mae = mae
+                best_mode = mode
+
+        results = {}
+        results['MAE'] = min_mae
+        results['Params'] =((best_mode, ))
+        results['Name'] = 'Prophet'
+
+        return results
