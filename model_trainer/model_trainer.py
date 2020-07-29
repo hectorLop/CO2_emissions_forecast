@@ -1,16 +1,21 @@
-from .grid_search import GridSearch, ARIMAGridSearch, ProphetGridSearch
+from .grid_search import GridSearch
 from typing import Tuple
 import pandas
 
 class ModelTrainer():
     """
     This class represents a ModelTrainer to obtain the best
-    possible model and its parameters
+    possible model and its parameters.
+
+    Implements a Strategy pattern with the GridSeach object.
 
     Parameters
     ----------
     data : pandas.DataFrame
         DataFrame containing the whole data
+    
+    grid_search_model : GridSearch
+        GridSearch object of a specific model
 
     Attributes
     ----------
@@ -20,16 +25,20 @@ class ModelTrainer():
     _test_data : pandas.DataFrame
         DataFrame containing the test data
 
+    _grid_seach_model: GridSearch
+        Object to apply Grid Search of a specific model
+
     Models List
     -----------
     - SARIMA
     - FBProphet
     """
 
-    def __init__(self, data: pandas.DataFrame) -> None:
+    def __init__(self, data: pandas.DataFrame, grid_search_model: GridSearch) -> None:
         self._train_data, self._test_data = self.__generate_train_and_test_sets(data)
+        self._grid_search_model = grid_search_model
 
-    def grid_search(self, train_data: pandas.DataFrame, test_data: pandas.DataFrame) -> dict:
+    def grid_search(self) -> dict:
         """
         Apply GridSearch on different models to obtain the best one
 
@@ -46,7 +55,9 @@ class ModelTrainer():
         results : dict
             Dictionary containing the best model with its parameters and metrics
         """
-        pass
+        results = self._grid_search_model.grid_search(self._train_data, self._test_data)
+
+        return results
 
     def __generate_train_and_test_sets(self, data: pandas.DataFrame) -> Tuple[pandas.DataFrame, pandas.DataFrame]:
         """
