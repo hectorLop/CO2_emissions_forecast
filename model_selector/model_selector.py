@@ -3,6 +3,7 @@ from ..model_trainer.grid_search import ARIMAGridSearch, ProphetGridSearch
 from ..model_trainer.model_trainer import ModelTrainer
 from typing import List
 import numpy
+from ..models.custom_estimators import TimeSeriesEstimator
 
 class ModelSelector():
     """
@@ -23,32 +24,35 @@ class ModelSelector():
     best_params : dict
         Dictionary containint the best model and its parameters
     """
-
+    # Constant list containing the available models
     MODELS_LIST = [ARIMAGridSearch(), ProphetGridSearch()]
 
     def __init__(self, data: pandas.DataFrame) -> None:
         self._data = data
 
-    def select_best_model(self) -> dict:
+    def select_best_model(self) -> TimeSeriesEstimator:
         """
         Selects the best possible model from a list of models
+
+        Returns
+        -------
+        best_model : dict
+            Dictionary containing the best model and its parameters
         """
-        model_trainer = None
-        best_model = {}
         results_list = []
 
         # Obtain the best parameters for each model
-        for model in MODELS_LIST:
+        for model in self.MODELS_LIST:
             model_trainer = ModelTrainer(self._data, model)
-
-            results_list.append(model_trainer.grid_search())
+            results = model_trainer.grid_search()
+            results_list.append(results)
         
         # Obtain the best model
-        best_model = self._compare_models(results_list)
+        best_model = self._select_best_results(results_list)
 
-        return best_model
+        return best_model['Model']
 
-    def _compare_models(self, results_list: List[dict]) -> dict:
+    def _select_best_results(self, results_list: List[dict]) -> dict:
         """
         Compare the grid search results and returns the best one
 
@@ -56,13 +60,18 @@ class ModelSelector():
         ----------
         results_list : List[dict]
             List of results for each grid search
+
+        Returns
+        -------
+        best_results : dict
+            Dictionary containing the best model and its results
         """
-        best_model = None
+        best_results = None
         best_mae = numpy.inf
 
         for results in results_list:
             if results['MAE'] < best_mae:
                 best_mae = results['MAE']
-                best_model = results
+                best_results = results
         
-        return best_model
+        return best_results
