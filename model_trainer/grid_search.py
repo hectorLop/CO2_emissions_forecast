@@ -35,7 +35,7 @@ class ARIMAGridSearch(GridSearch):
         Tuple containing (p, d, q)m parameters for the seasonal part
     """
 
-    def __init__(self, range_limit: int) -> None:
+    def __init__(self, range_limit=2) -> None:
         self._range_limit = range_limit
         self._pdq, self._seasonal_pdq = self.__generate_combinations_of_parameters()
     
@@ -94,7 +94,7 @@ class ARIMAGridSearch(GridSearch):
 
         results = {}
         results['MAE'] = min_mae
-        results['Params'] = (best_params, best_seasonal_params)
+        results['Model'] = ARIMAEstimator(order=best_params, seasonal_order=best_seasonal_params)
         results['Name'] = 'ARIMA'
 
         return results
@@ -134,9 +134,7 @@ class ProphetGridSearch(GridSearch):
             model.fit(train_data)
         
             predictions = model.predict()
-            print("PREDICTTTTTTTTTTTTTTTT")
-            print(test_data.values.shape)
-            print(predictions.values.shape)
+
             mae = model.score(test_data.values, predictions.values)
         
             if mae < min_mae:
@@ -145,7 +143,7 @@ class ProphetGridSearch(GridSearch):
 
         results = {}
         results['MAE'] = min_mae
-        results['Params'] =((best_mode, ))
+        results['Model'] = ProphetEstimator(seasonality_mode=best_mode)
         results['Name'] = 'Prophet'
 
         return results
