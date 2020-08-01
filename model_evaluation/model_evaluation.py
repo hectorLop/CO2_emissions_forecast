@@ -1,7 +1,7 @@
 from typing import Callable
 import pandas
 from ..models.custom_estimators import TimeSeriesEstimator
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_per
 import time
 import numpy
 
@@ -34,11 +34,35 @@ class ModelEvaluation():
     def cross_validation(self):
         pass
 
-    def _get_metrics(self, real_values: numpy.ndarray, predictions: numpy.ndarray):
+    def _get_metrics(self, real_values: numpy.ndarray, predictions: numpy.ndarray) -> dict:
         """
         Measures some regression metrics
+
+        Parameters
+        ----------
+        real_values : numpy.ndarray
+            Numpy array containing the real observations
+
+        predictions : numpy.ndarray
+            Numpy array containing predictions
+
+        Returns
+        -------
+        metrics : dictionary
+            Dictionary containing several metrics
+
+        Metrics
+        -------
+        - MAE (Mean Absolute Error)
+        - RMSE (Root Mean Squared Error)
+        - MAPE (Mean Absolute Percentage Error)
         """
-        pass
+        metrics = {}
+        metrics['MAE'] = mean_absolute_error(real_values, predictions)
+        metrics['RMSE'] = numpy.sqrt(mean_squared_error(real_values, predictions))
+        metrics['MAPE'] = numpy.mean(numpy.abs((real_values - predictions) / real_values)) * 100
+
+        return metrics
 
     def _measure_elapsed_time(self, function: Callable) -> float:
         """
