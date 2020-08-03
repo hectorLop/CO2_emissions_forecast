@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Tuple
 import pandas
 from ..models.custom_estimators import TimeSeriesEstimator
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_per
@@ -31,8 +31,40 @@ class ModelEvaluation():
         self._data = data
         self._model = model
 
-    def cross_validation(self):
-        pass
+    def cross_validation(self, folds=10, fold_size=48) -> Tuple[dict, float]:
+        """
+        Apply Cross Validation with a given number of folds
+
+        Parameters
+        ----------
+        folds : int
+            Number of folds to use. Default is 10, which means 10 days
+        
+        fold_size : int
+            Size of each fold in hours. Default is 48, which means 48 hours
+
+        Returns
+        -------
+        metrics : dict
+            Metrics for each cv split
+
+        fit_time : float
+            The time for fitting the estimator for each cv split
+        """
+        # Converts days to hours
+        offset = folds * fold_size
+
+        while offset > fold_size:
+            # Get the whole data less the offset
+            train_data = self._data.iloc[:-offset]
+            # Get the folf_size from the offset 
+            test_data = self._data.iloc[-offset:-offset + fold_size]
+
+            # Train the model and get the fit time
+            fit_time = self._measure_fit_time(train_data)
+
+            predictions = self._model.predict()
+
 
     def _get_metrics(self, real_values: numpy.ndarray, predictions: numpy.ndarray) -> dict:
         """
@@ -64,14 +96,14 @@ class ModelEvaluation():
 
         return metrics
 
-    def _measure_elapsed_time(self, function: Callable) -> float:
+    def _measure_fit_time(self, train_data: pandas.DataFrame) -> float:
         """
         Measures the execution time of a given function
 
         Parameters
         ----------
-        function : Callable
-            Function to be executed
+        train_data : pandas.DataFrame
+            Train dataset
 
         Returns
         -------
@@ -79,7 +111,7 @@ class ModelEvaluation():
             Elapsed time
         """
         start = time.time()
-        function()
+        self._model.fit(train_data)
         end = time.time()
 
         return end - start
