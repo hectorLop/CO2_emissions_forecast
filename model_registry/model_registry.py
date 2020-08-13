@@ -26,8 +26,20 @@ class ModelRegistry:
         self._connection = connection
         self._table_name = table_name
 
-    def _insert(self, values: Tuple) -> None:
-        pass
+    def _insert(self, values: tuple) -> None:
+        """
+        Inserts info to the database
+
+        Parameters
+        ----------
+        values : Tuple
+            Tuple containing the values to be inserted
+        """
+        query = """
+                INSERT INTO {}
+                (name, model, parameters, metrics, remote_path, training_path, dataset)
+                VALUES (?, ?, ?, ?, ?, ?, ?)""".format(self._table_name)
+        self._query(query, values)
 
     def _query(self, query: str, values=None) -> None:
         pass
