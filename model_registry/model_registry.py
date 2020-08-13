@@ -32,7 +32,7 @@ class ModelRegistry:
 
         Parameters
         ----------
-        values : Tuple
+        values : tuple
             Tuple containing the values to be inserted
         """
         query = """
@@ -42,7 +42,20 @@ class ModelRegistry:
         self._query(query, values)
 
     def _query(self, query: str, values=None) -> None:
-        pass
+        """
+        Makes a query to the database
+
+        Parameters
+        ----------
+        query : str
+            Query as a string
+
+        values : tuple
+            Tuple containing the query values. Default is None
+        """
+        cursor = self._connection.cursor()
+        cursor.execute(query, values)
+        cursor.close()
 
     def _save_to_remote(path: str, filename: str, model: object) -> None:
         pass
