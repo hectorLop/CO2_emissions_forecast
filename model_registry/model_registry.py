@@ -1,5 +1,9 @@
+from configparser import ConfigParser
 from typing import Any, Tuple
+from .config_reader import ConfigReader
 import json
+import os
+import boto3
 
 class ModelRegistry:
     """
@@ -21,6 +25,8 @@ class ModelRegistry:
     _table_name : str
         Registry table name
     """
+
+    KEYS_FILENAME = 'access_keys.ini'
 
     def __init__(self, connection: object, table_name='registry') -> None:
         self._connection = connection
@@ -56,9 +62,59 @@ class ModelRegistry:
         cursor = self._connection.cursor()
         cursor.execute(query, values)
         cursor.close()
-
+    
     def _save_to_remote(path: str, filename: str, model: object) -> None:
         pass
+    
+    def _get_keys(self) -> tuple:
+        """
+        Gets the access and secret keys
+        
+        Returns
+        -------
+        access_key, secret_acces_key : tuple
+            Tuple containing both keys as strings
+        """
+        # Gets the absolute path of the file containing the keys
+        ini_path = os.path.join(os.getcwd(), self.KEYS_FILENAME)
+
+        parser = ConfigParser()
+        # Reads the config file
+        parser.read(ini_path)
+
+        return parser['keys']['access_key'], parser['keys']['secret_access_key']
+    
+    def _upload_to_aws(self, local_file: str, bucket: str, s3_file: str) -> bool:
+        """
+        Upload a file to a s3 bucket
+
+        Parameters
+        ----------
+        local_file : str
+            File to be uploaded
+
+        bucket : str
+            Bucket name
+
+        s3_file : str
+            Destination file
+
+        Returns
+        -------
+        uploaded : bool
+            True if the file is uploaded succesfully
+        """
+        access_key, secret_access_key = self._get_keys()
+
+        s3 = boto3.client('s3', aws_access_key_id=access_key,
+                      aws_secret_access_key=secret_access_key)
+
+        try:
+            s3.upload_file(local_file, bucket, s3_file)
+            return True
+        except FileNotFoundError:
+            print("The file was not found")
+            return False
 
     def publish_model(self, model: object, name: str, parameters: tuple, metrics: Any,
                       training_time: float, dataset_range: str) -> None:
