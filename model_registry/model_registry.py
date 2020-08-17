@@ -88,25 +88,32 @@ class ModelRegistry:
         Parameters
         ----------
         model : object
-            Mo
+            Trained model
+
+        Returns
+        -------
+        buffer : BytesIO
+            In-memory buffer containing the model data
         """
         with BytesIO() as buffer:
+            # Dump the model into a buffer
             joblib.dump(model, buffer)
+            # Sets the buffer stream at the start
             buffer.seek(0)
 
         return buffer
 
-    def _upload_to_aws(self, model_data: BytesIO, filename : str) -> bool:
+    def _upload_to_aws(self, model_data: BytesIO, filename : str) -> None:
         """
         Upload a file to a s3 bucket
 
         Parameters
         ----------
-        local_file : str
-            File to be uploaded
+        model_data : BytesIO
+            In-memory buffer containing the model data
 
-        bucket : str
-            Bucket name
+        filename : str
+            Desired filename of the model in the S3 bucket
 
         remote_path : str
             Destination file
@@ -133,13 +140,23 @@ class ModelRegistry:
             s3_key = aws_config['remote_path'] + filename
             # Upload the model to a S3 bucket
             s3.upload_fileobj(Bucket=aws_config['bucket'], Key=s3_key, Fileobj=model_data)
-            return True
         except FileNotFoundError:
-            print("The file was not found")
-            return False
+            raise FileNotFoundError("The file was not found")
 
-    def _save_to_remote(self, path: str, filename: str, model: object) -> None:
-        pass
+    def _save_to_remote(self, filename: str, model: object) -> None:
+        """
+        Saves a model into a remote repository
+
+        Parameters
+        ----------
+        filename : str
+            Desired filename of the model in the remote repository
+        
+        model : object
+            Trained model
+        """
+        model_data = self._dump_model(model)
+        self._upload_to_aws(model_data, filename)
 
     def publish_model(self, model: object, name: str, parameters: tuple, metrics: Any,
                       training_time: float, dataset_range: str) -> None:
