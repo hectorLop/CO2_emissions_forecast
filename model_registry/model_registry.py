@@ -1,10 +1,9 @@
 from configparser import ConfigParser
 from typing import Any, Tuple
-from .config_reader import ConfigReader
-import json
 import os
 import boto3
 import joblib
+from io import BytesIO
 
 class ModelRegistry:
     """
@@ -64,9 +63,6 @@ class ModelRegistry:
         cursor.execute(query, values)
         cursor.close()
     
-    def _save_to_remote(path: str, filename: str, model: object) -> None:
-        pass
-    
     def _read_aws_config(self) -> dict:
         """
         Gets the access and secret keys
@@ -84,8 +80,23 @@ class ModelRegistry:
         parser.read(ini_path)
 
         return parser['settings']
-    
-    def _upload_to_aws(self, local_file: str, bucket: str, remote_path: str) -> bool:
+
+    def _dump_model(self, model: object) -> BytesIO:
+        """
+        Dump a model into a in-memory buffer
+
+        Parameters
+        ----------
+        model : object
+            Mo
+        """
+        with BytesIO() as buffer:
+            joblib.dump(model, buffer)
+            buffer.seek(0)
+
+        return buffer
+
+    def _upload_to_aws(self, model_data: BytesIO, filename : str) -> bool:
         """
         Upload a file to a s3 bucket
 
@@ -104,22 +115,35 @@ class ModelRegistry:
         -------
         uploaded : bool
             True if the file is uploaded succesfully
+
+        Notes
+        -----
+        Call example:
+            _upload_to_aws(model, 'saved_model.joblib')
         """
+        # Reads the aws settings
         aws_config = self._read_aws_config()
 
+        # Creates a client with the custom keys
         s3 = boto3.client('s3', aws_access_key_id=aws_config['access_key'],
                       aws_secret_access_key=aws_config['secret_access_key'])
 
         try:
-            s3.upload_file(local_file, bucket, s3_file)
+            # Creates the remote path where the data will be saved
+            s3_key = aws_config['remote_path'] + filename
+            # Upload the model to a S3 bucket
+            s3.upload_fileobj(Bucket=aws_config['bucket'], Key=s3_key, Fileobj=model_data)
             return True
         except FileNotFoundError:
             print("The file was not found")
             return False
+
+    def _save_to_remote(self, path: str, filename: str, model: object) -> None:
+        pass
 
     def publish_model(self, model: object, name: str, parameters: tuple, metrics: Any,
                       training_time: float, dataset_range: str) -> None:
         pass
 
     def get_model_info(self, name: str) -> str:
-        pass
+        pass 
