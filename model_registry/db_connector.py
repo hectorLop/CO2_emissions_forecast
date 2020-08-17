@@ -20,23 +20,9 @@ class DBConnector():
         Configuration file parser
     """
 
-    def __init__(self, ini_file : str) -> None:
+    def __init__(self, ini_file: str) -> None:
         self._ini_path = os.path.join(os.getcwd(), ini_file)
-        self._config_file = self._read_config_file()
-
-    def _read_config_file(self) -> ConfigParser:
-        """
-        Gets the parser of the configuration file
-
-        Returns
-        -------
-        config : ConfigParser
-            Configuration file parser
-        """
-        config = ConfigParser()
-        config.read(self._ini_path)
-
-        return config
+        self._config = ConfigParser()
 
     def connect_to_db(self) -> psycopg2.connection:
         """
@@ -48,10 +34,13 @@ class DBConnector():
             Connection object which handles the connection to the database. It
             encapsulates a database session
         """
-        connection = psycopg2.connect(user=self._config_file['auth']['user'],
-                                      password=self._config_file['auth']['password'],
-                                      host=self._config_file['db']['host'],
-                                      port=self._config_file['db']['port'],
-                                      database=self._config_file['db'['database']])
+        # Reads the config file with the database settings
+        self._config.read(self._ini_path)
+
+        connection = psycopg2.connect(user=self._config['auth']['user'],
+                                      password=self._config['auth']['password'],
+                                      host=self._config['db']['host'],
+                                      port=self._config['db']['port'],
+                                      database=self._config['db'['database']])
         
         return connection

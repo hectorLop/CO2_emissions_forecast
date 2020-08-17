@@ -4,6 +4,7 @@ from .config_reader import ConfigReader
 import json
 import os
 import boto3
+import joblib
 
 class ModelRegistry:
     """
@@ -26,7 +27,7 @@ class ModelRegistry:
         Registry table name
     """
 
-    KEYS_FILENAME = 'access_keys.ini'
+    KEYS_FILENAME = 'aws_config.ini'
 
     def __init__(self, connection: object, table_name='registry') -> None:
         self._connection = connection
@@ -66,7 +67,7 @@ class ModelRegistry:
     def _save_to_remote(path: str, filename: str, model: object) -> None:
         pass
     
-    def _get_keys(self) -> tuple:
+    def _read_aws_config(self) -> dict:
         """
         Gets the access and secret keys
         
@@ -82,9 +83,9 @@ class ModelRegistry:
         # Reads the config file
         parser.read(ini_path)
 
-        return parser['keys']['access_key'], parser['keys']['secret_access_key']
+        return parser['settings']
     
-    def _upload_to_aws(self, local_file: str, bucket: str, s3_file: str) -> bool:
+    def _upload_to_aws(self, local_file: str, bucket: str, remote_path: str) -> bool:
         """
         Upload a file to a s3 bucket
 
@@ -96,7 +97,7 @@ class ModelRegistry:
         bucket : str
             Bucket name
 
-        s3_file : str
+        remote_path : str
             Destination file
 
         Returns
@@ -104,10 +105,10 @@ class ModelRegistry:
         uploaded : bool
             True if the file is uploaded succesfully
         """
-        access_key, secret_access_key = self._get_keys()
+        aws_config = self._read_aws_config()
 
-        s3 = boto3.client('s3', aws_access_key_id=access_key,
-                      aws_secret_access_key=secret_access_key)
+        s3 = boto3.client('s3', aws_access_key_id=aws_config['access_key'],
+                      aws_secret_access_key=aws_config['secret_access_key'])
 
         try:
             s3.upload_file(local_file, bucket, s3_file)
