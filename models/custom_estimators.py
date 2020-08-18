@@ -34,6 +34,16 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
         """
         pass
 
+    @abstractmethod
+    def get_info(self) -> dict:
+        """
+        Returns estimmator significative information such as:
+            - Estimator name
+            - Parameters
+            - Start and end dates from the dataset used to train the estimator
+        """
+        pass
+
     def score(self, real_values: numpy.ndarray, predictions: numpy.ndarray) -> float:
         """
         Return the mean absolute error (MAE) on the given data and the predictions.
@@ -54,6 +64,17 @@ class TimeSeriesEstimator(BaseEstimator, ABC):
         from sklearn.metrics import mean_absolute_error
 
         return mean_absolute_error(real_values, predictions)
+
+    def _get_start_and_end_dates(self, data: pandas.DataFrame) -> str:
+        """
+        Gets the first and last dates from a DatetimeIndex
+        It assumes that the dataset 
+        """
+        format = '%Y-%m-%d %H:%M'
+        start = data.index[0].strftime(format)
+        end = data.index[-1].strftime(format)
+
+        return start + ', ' + end
 
 class ARIMAEstimator(TimeSeriesEstimator):
     """
@@ -123,6 +144,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         self._enforce_stationary = enforce_stationary
         self._enforce_invertibility = enforce_invertibility
 
+        self._dataset_start_end = ''
 
     def fit(self, data: numpy.ndarray, y=None) -> ARIMAEstimator:
         """
@@ -138,6 +160,9 @@ class ARIMAEstimator(TimeSeriesEstimator):
         self : ARIMAEstimator
             Self ARIMAEstimator object
         """
+        # Gets the start and the end of the dataset in order to collect info about the model
+        self._dataset_start_end = self._get_start_and_end_dates(data)
+
         self._model = SARIMAX(data, order=self._order,
                               seasonal_order=self._seasonal_order,
                               enforce_stationarity=self._enforce_stationary,
@@ -167,6 +192,18 @@ class ARIMAEstimator(TimeSeriesEstimator):
         forecast = self._model_results.get_forecast(steps)
         
         return forecast.predicted_mean
+
+    def get_info(self) -> dict:
+        info = {
+            'name': 'SARIMA',
+            'parameters': {
+                'non_seasonal_params': self._order,
+                'seasonal_params': self._seasonal_order
+            },
+            'dataset_start_end': self._dataset_start_end
+        }
+
+        return info
 
 class ProphetEstimator(TimeSeriesEstimator):
     """
@@ -222,7 +259,7 @@ class ProphetEstimator(TimeSeriesEstimator):
         """
         if 'ds' not in data.columns or 'y' not in data.columns:
             data = data.reset_index()
-            data = data.rename(columns={"Dates": "ds", "Emissions": "y"})
+            data = data.rename(columns={data.columns[0]: "ds", data.columns[1]: "y"})
 
         self._model.fit(data)
 
@@ -246,7 +283,7 @@ class ProphetEstimator(TimeSeriesEstimator):
         forecast : pandas.DataFrame
             DataFrame with forecasted values
         """
-        future_df = self._model.make_future_dataframe(periods=steps, freq=freq)
+        future_df = self._model.make_future_dataframe(periods=steps, freq=freq, include_history=False)
 
         forecast = self._model.predict(future_df)
 
