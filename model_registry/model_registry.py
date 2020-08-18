@@ -1,9 +1,9 @@
 from configparser import ConfigParser
-from typing import Any, Tuple
 import os
 import boto3
 import joblib
 from io import BytesIO
+from datetime import datetime
 
 class ModelRegistry:
     """
@@ -103,18 +103,17 @@ class ModelRegistry:
 
         return buffer
 
-    def _upload_to_aws(self, access_key: str, secret_access_key: str, bucket: str,
-                        model_data: BytesIO, remote_path : str) -> None:
+    def _upload_to_aws(self, aws_config: dict, model_data: BytesIO, remote_path : str) -> None:
         """
         Upload a file to a s3 bucket
 
         Parameters
         ----------
+        aws_config : dict
+            Dictionary containing aws s3 bucket settings
+
         model_data : BytesIO
             In-memory buffer containing the model data
-
-        filename : str
-            Desired filename of the model in the S3 bucket
 
         remote_path : str
             Destination file
@@ -125,30 +124,32 @@ class ModelRegistry:
             True if the file is uploaded succesfully
         """
         # Creates a client with the custom keys
-        s3 = boto3.client('s3', aws_access_key_id=access_key,
-                        aws_secret_access_key=secret_access_key)
+        s3 = boto3.client('s3', aws_access_key_id=aws_config['access_key'],
+                        aws_secret_access_key=aws_config['secret_access_key'])
 
         try:
             # Upload the model to a S3 bucket
-            s3.upload_fileobj(Bucket=bucket, Key=remote_path, Fileobj=model_data)
+            s3.upload_fileobj(Bucket=aws_config['bucket'], Key=remote_path, Fileobj=model_data)
         except FileNotFoundError:
             raise FileNotFoundError("The file was not found")
 
-    def _save_to_remote(self, access_key: str, secret_access_key: str, 
-                        remote_path: str, bucket: str, model: object) -> None:
+    def _save_to_remote(self, model: object, aws_config: dict, remote_path: str) -> None:
         """
         Saves a model into a remote repository
 
         Parameters
         ----------
-        filename : str
-            Desired filename of the model in the remote repository
-        
         model : object
             Trained model
+
+        aws_config : dict
+            Dictionary containing aws s3 bucket settings
+
+        remote_path : str
+            Destination file in the remote repository
         """
         model_data = self._dump_model(model)
-        self._upload_to_aws(access_key, secret_access_key, bucket, model_data, remote_path)
+        self._upload_to_aws(aws_config, model_data, remote_path)
 
     def publish_model(self, model: object, metrics: dict, training_time: float) -> None:
         """
@@ -164,8 +165,5 @@ class ModelRegistry:
 
         training_time : float
             Time necessary to train the model
-        """
+        """   
         pass
-
-    def get_model_info(self, name: str) -> str:
-        pass 
