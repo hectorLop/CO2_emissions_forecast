@@ -236,11 +236,14 @@ class ProphetEstimator(TimeSeriesEstimator):
     """
 
     def __init__(self, seasonality_mode='additive', yearly_seasonality='auto',
-                 weekly_seasonality='auto', daily_seasonality='auto'):              
+                 weekly_seasonality='auto', daily_seasonality='auto'):
+        self._seasonality_mode = seasonality_mode              
         self._model = Prophet(seasonality_mode=seasonality_mode,
                               yearly_seasonality=yearly_seasonality,
                               weekly_seasonality=weekly_seasonality,
                               daily_seasonality=daily_seasonality)
+
+        self._dataset_start_end = ''
         
     def fit(self, data: pandas.DataFrame, y=None) -> ProphetEstimator:
         """
@@ -257,6 +260,9 @@ class ProphetEstimator(TimeSeriesEstimator):
         self : ProphetEstimator
             Self ProphetEstimator object with fitted model
         """
+        # Gets the start and the end of the dataset in order to collect info about the model
+        self._dataset_start_end = self._get_start_and_end_dates(data)
+
         if 'ds' not in data.columns or 'y' not in data.columns:
             data = data.reset_index()
             data = data.rename(columns={data.columns[0]: "ds", data.columns[1]: "y"})
@@ -288,3 +294,14 @@ class ProphetEstimator(TimeSeriesEstimator):
         forecast = self._model.predict(future_df)
 
         return forecast[['yhat']]
+
+    def get_info(self) -> dict:
+        info = {
+            'name': 'Prophet',
+            'parameters': {
+                'seasonality_mode': self._seasonality_mode
+            },
+            'dataset_start_end': self._dataset_start_end
+        }
+
+        return info
