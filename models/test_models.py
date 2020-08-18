@@ -5,6 +5,7 @@ import pandas
 from pandas.testing import assert_frame_equal
 from sklearn.pipeline import Pipeline
 from .custom_estimators import ARIMAEstimator, ProphetEstimator
+from ..tests_fixtures.fixtures import supply_df
 
 @pytest.fixture
 def supply_pipelines() -> dict:
@@ -82,6 +83,25 @@ def test_arima_estimator(supply_pipelines):
     # Assert if the predictions values are a numpy array
     assert isinstance(predictions.values, numpy.ndarray)
 
+def test_arima_get_info(supply_df):
+    """
+    Test if the information returned by the model is correct
+
+    Parameters
+    ----------
+    supply_df : pandas.DataFrame
+        DataFrame containing data to test the models 
+    """
+    arima = ARIMAEstimator()
+    arima.fit(supply_df)
+    info = arima.get_info()
+
+    assert isinstance(info, dict)
+    assert info['name'] == 'SARIMA'
+    assert info['dataset_start_end']
+    assert isinstance(info['parameters']['non_seasonal_params'], tuple)
+    assert isinstance(info['parameters']['seasonal_params'], tuple)
+
 def test_prophet_estimator(supply_pipelines):
     """
     Test if the Prophet estimator is capable of yield predictions
@@ -127,3 +147,21 @@ def test_prophet_estimator(supply_pipelines):
 
     # Assert if the predictions values are a numpy array
     assert isinstance(predictions.values, numpy.ndarray)
+
+def test_prophet_get_info(supply_df):
+    """
+    Test if the information returned by the model is correct
+
+    Parameters
+    ----------
+    supply_df : pandas.DataFrame
+        DataFrame containing data to test the models
+    """ 
+    prophet = ProphetEstimator()
+    prophet.fit(supply_df)
+    info = prophet.get_info()
+
+    assert isinstance(info, dict)
+    assert info['name'] == 'Prophet'
+    assert info['dataset_start_end']
+    assert info['parameters']['seasonality_mode']
