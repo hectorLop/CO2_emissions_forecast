@@ -4,6 +4,7 @@ import boto3
 import joblib
 from io import BytesIO
 from datetime import datetime
+import json
 
 class ModelRegistry:
     """
@@ -151,6 +152,27 @@ class ModelRegistry:
         model_data = self._dump_model(model)
         self._upload_to_aws(aws_config, model_data, remote_path)
 
+    def _create_unique_model_name(self, name: str) -> str:
+        """
+        Creates a unique model name
+
+        The format is: Model_name-YYY-MM-DD
+        e.g. ARIMA-2020-08-18
+
+        Parameters
+        ----------
+        name : str
+            Model's name
+
+        Returns
+        -------
+        unique_model_name : str
+            Model's name plus the date of today
+        """
+        date_of_today_str = datetime.today().strftime('%Y-%m-%d')
+
+        return name + '-' + date_of_today_str + ".joblib"
+
     def publish_model(self, model: object, metrics: dict, training_time: float) -> None:
         """
         Publish a model into a remote repository
@@ -166,4 +188,20 @@ class ModelRegistry:
         training_time : float
             Time necessary to train the model
         """   
-        pass
+        # Gets the model information
+        model_info = model.get_info()
+        parameters = json.dumps(model_info['parameters'])
+        dataset_range_dates = model_info['dataset_start_end']
+        name = self._create_unique_model_name(model_info['name'])
+        metrics_str = json.dumps(metrics)
+
+        # Gets the aws s3 bucket settings
+        aws_config = self._read_aws_config()
+        remote_path = aws_config['remote_path'] + name
+
+        # Save the model in the s3 bucket
+        self._save_to_remote(model, aws_config, remote_path)
+
+        # Inserts the model info into the model_registry
+        self._insert((name, model_info['name'], parameters, metrics_str, remote_path,
+                     training_time, dataset_range_dates))
