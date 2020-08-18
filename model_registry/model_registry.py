@@ -103,7 +103,8 @@ class ModelRegistry:
 
         return buffer
 
-    def _upload_to_aws(self, model_data: BytesIO, filename : str) -> None:
+    def _upload_to_aws(self, access_key: str, secret_access_key: str, bucket: str,
+                        model_data: BytesIO, remote_path : str) -> None:
         """
         Upload a file to a s3 bucket
 
@@ -122,28 +123,19 @@ class ModelRegistry:
         -------
         uploaded : bool
             True if the file is uploaded succesfully
-
-        Notes
-        -----
-        Call example:
-            _upload_to_aws(model, 'saved_model.joblib')
         """
-        # Reads the aws settings
-        aws_config = self._read_aws_config()
-
         # Creates a client with the custom keys
-        s3 = boto3.client('s3', aws_access_key_id=aws_config['access_key'],
-                      aws_secret_access_key=aws_config['secret_access_key'])
+        s3 = boto3.client('s3', aws_access_key_id=access_key,
+                        aws_secret_access_key=secret_access_key)
 
         try:
-            # Creates the remote path where the data will be saved
-            s3_key = aws_config['remote_path'] + filename
             # Upload the model to a S3 bucket
-            s3.upload_fileobj(Bucket=aws_config['bucket'], Key=s3_key, Fileobj=model_data)
+            s3.upload_fileobj(Bucket=bucket, Key=remote_path, Fileobj=model_data)
         except FileNotFoundError:
             raise FileNotFoundError("The file was not found")
 
-    def _save_to_remote(self, filename: str, model: object) -> None:
+    def _save_to_remote(self, access_key: str, secret_access_key: str, 
+                        remote_path: str, bucket: str, model: object) -> None:
         """
         Saves a model into a remote repository
 
@@ -156,10 +148,23 @@ class ModelRegistry:
             Trained model
         """
         model_data = self._dump_model(model)
-        self._upload_to_aws(model_data, filename)
+        self._upload_to_aws(access_key, secret_access_key, bucket, model_data, remote_path)
 
-    def publish_model(self, model: object, name: str, parameters: tuple, metrics: Any,
-                      training_time: float, dataset_range: str) -> None:
+    def publish_model(self, model: object, metrics: dict, training_time: float) -> None:
+        """
+        Publish a model into a remote repository
+
+        Parameters
+        ----------
+        model : object
+            Trained model
+
+        metrics : dict
+            Dictionary containing the model metrics
+
+        training_time : float
+            Time necessary to train the model
+        """
         pass
 
     def get_model_info(self, name: str) -> str:
