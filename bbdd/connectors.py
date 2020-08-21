@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import psycopg2
-import pymongo
+from pymongo import MongoClient
 
 class Connector(ABC):
     """
@@ -35,6 +35,11 @@ class PostgresConnector(Connector):
         ----------
         config_parsed : dict
             Dictionary containing database settings
+
+        Returns
+        -------
+        connection : object
+            Object which encapsulates a database session
         """
         connection = psycopg2.connect(user=config_parsed['postgres']['user'],
                                       password=config_parsed['postgres']['password'],
@@ -53,4 +58,20 @@ class MongoConnector(Connector):
         pass
 
     def connect(self, config_parsed: dict) -> object:
-        pass
+        """
+        Establish connection with a MongoDB database
+
+        Parameters
+        ----------
+        config_parsed : dict
+            Dictionary containing database settings
+
+        Returns
+        -------
+        connection : object
+            Object which encapsulates a database session
+        """
+        client = MongoClient(config_parsed['host'], int(config_parsed['port']))
+        connection = client.co2Project_hectorLop
+
+        return connection
