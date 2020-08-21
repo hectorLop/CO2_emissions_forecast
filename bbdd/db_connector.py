@@ -1,35 +1,50 @@
-from abc import ABC, abstractmethod
+from __future__ import annotations
+import os
+from .connectors import Connector
+from configparser import ConfigParser
 
-class Connector(ABC):
+class DBConnector():
     """
-    Abstract class to implement connection to a database
+    This class creates a connection to a PostgreSQL database
+
+    Parameters
+    ----------
+    connector : Connector
+        Connector object to handle a database connection
+    
+    Attributes
+    ----------
+    _connector : Connector
+        Connector object to handle a database connection
+    
+    _parser : ConfigParser
+        Configuration file parser
     """
 
-    @abstractmethod
-    def connect(self) -> object:
+    def __init__(self, connector: Connector) -> None:
+        self._connector = connector
+        self._parser = ConfigParser()
+
+    def connect_to_db(self, ini_file: str) -> object:
         """
-        Establish connection with a database
+        Opens a connection to a database
+
+        Parameters
+        ----------
+        ini_file : str
+            File containing database settings
+
+        Returns
+        -------
+        connection : object
+            Connection object which handles the connection to the database. It
+            encapsulates a database session
         """
-        pass
+        # Creates the .ini file absolute path
+        ini_path = os.path.join(os.getcwd(), ini_file)
+        # Reads the config file with the database settings
+        self._parser.read(ini_path)
 
-class PostgresConnector(Connector):
-    """
-    Connection to a PostgreSQL database
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    def connect(self) -> object:
-        pass
-
-class MongoConnector(Connector):
-    """
-    Connection to a MongoDB database
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    def connect(self) -> object:
-        pass
+        connection = self._connector.connect(self._parser)
+        
+        return connection
