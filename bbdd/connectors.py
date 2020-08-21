@@ -28,7 +28,21 @@ class PostgresConnector(Connector):
         pass
 
     def connect(self, config_parsed: dict) -> object:
-        pass
+        """
+        Establish connection with a postgreSQL database
+
+        Parameters
+        ----------
+        config_parsed : dict
+            Dictionary containing database settings
+        """
+        connection = psycopg2.connect(user=config_parsed['postgres']['user'],
+                                      password=config_parsed['postgres']['password'],
+                                      host=config_parsed['postgres']['host'],
+                                      port=int(config_parsed['postgres']['port']),
+                                      database=config_parsed['postgres'['database']])
+        
+        return connection
 
 class MongoConnector(Connector):
     """
