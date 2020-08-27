@@ -34,26 +34,26 @@ class DataCollector:
         """
         Retrieves data from the previous day
         """
-        previous_day_str = self._get_previous_day_date()
-        endpoint = self.ENDPOINT_URL + previous_day_str
-        
+        endpoint = self._generate_endpoint
+
         data = self._retrieve_energy_data(endpoint)
 
-    def _get_previous_day_date(self) -> str:
+    def _generate_endpoint(self) -> str:
         """
-        Gets the previous day date as a string
+        Generates the endpoint for the previous day data
 
         Returns
         -------
-        previous_day_str : str
-            String representing the date of the previous day in the format YYYY-MM-DD
+        endpoint : str
+            Endpoint to retrieve the previous day data
         """
         today = date.today()
-        previous_day = today - timedelta(days = 1)
+        previous_day = today - timedelta(days=1)
+        previous_day_str = previous_day.strftime('%Y-%m-%d')
 
-        return previous_day.strftime('%Y-%m-%d')
+        return self.ENDPOINT_URL + previous_day_str
 
-    def _retrieve_energy_data(self, url: str) -> str:
+    def _retrieve_energy_data(self, url: str) -> dict:
         """
         Retrieve all the text from a given url
 
@@ -64,8 +64,8 @@ class DataCollector:
 
         Returns
         -------
-        page.text : str 
-            String containing the content of the response, follows a json format
+        json_data : dict 
+            Dictionary containing the json data
         """
         # Gets the raw data in json format
         page = requests.get(url)
