@@ -1,6 +1,8 @@
 from ..bbdd.db_connector import DBConnector
 from ..bbdd.connectors import MongoConnector
-from datetime import date, datetime, time, timedelta
+from datetime import date, timedelta
+import requests
+import json
 
 class DataCollector:
     """
@@ -33,6 +35,9 @@ class DataCollector:
         Retrieves data from the previous day
         """
         previous_day_str = self._get_previous_day_date()
+        endpoint = self.ENDPOINT_URL + previous_day_str
+        
+        data = self._retrieve_energy_data(endpoint)
 
     def _get_previous_day_date(self) -> str:
         """
@@ -47,6 +52,32 @@ class DataCollector:
         previous_day = today - timedelta(days = 1)
 
         return previous_day.strftime('%Y-%m-%d')
+
+    def _retrieve_energy_data(self, url: str) -> str:
+        """
+        Retrieve all the text from a given url
+
+        Parameters
+        ----------
+        url : str
+            String containing the endpoint url
+
+        Returns
+        -------
+        page.text : str 
+            String containing the content of the response, follows a json format
+        """
+        # Gets the raw data in json format
+        page = requests.get(url)
+        data = page.text
+
+        # Cleans the data to leave only the json part
+        data = data.replace('null({"valoresHorariosGeneracion":', '')
+        data = data.replace('});', '')
+        # Decodes the json
+        json_data = json.loads(data)
+
+        return json_data
 
     def insert_raw_data(self, data: dict) -> None:
         """
