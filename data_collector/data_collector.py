@@ -1,6 +1,6 @@
 from ..bbdd.db_connector import DBConnector
 from ..bbdd.connectors import MongoConnector
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import requests
 import json
 from typing import Dict, List
@@ -43,11 +43,19 @@ class DataCollector:
         """
         Retrieves data from the previous day
         """
-        endpoint = self._generate_endpoint()
-        data = self._retrieve_energy_data(endpoint)
-        emissions = self._generate_emissions(data)
-        
-    def _generate_endpoint(self) -> str:
+        # Generates the endpoint from which obtain the data
+        previous_day_str = self._generate_previous_day_date()
+        endpoint = self.ENDPOINT_URL + previous_day_str
+        # Retrieves the data from the endpoint
+        energy_data = self._retrieve_energy_data(endpoint)
+        # Generates the emissions data from the energy_data
+        emissions = self._generate_emissions(energy_data)
+
+        # Creates the document containing the data and inserts it into the database
+        document = self._generate_document(emissions, previous_day_str)
+        self._insert_document(document)
+
+    def _generate_previous_day_date(self) -> str:
         """
         Generates the endpoint for the previous day data
 
@@ -60,7 +68,7 @@ class DataCollector:
         previous_day = today - timedelta(days=1)
         previous_day_str = previous_day.strftime('%Y-%m-%d')
 
-        return self.ENDPOINT_URL + previous_day_str
+        return previous_day_str
 
     def _retrieve_energy_data(self, url: str) -> List[Dict]:
         """
@@ -124,13 +132,40 @@ class DataCollector:
         polluting_energies = ['aut', 'car', 'cc', 'cogenResto', 'gf', 'termRenov']
 
         # List with the emissions for each energy
-        emissions = [observation[energy] * self.CO2_EMISSIONS_FACTOR for energy in polluting_energies]
+        emissions = [observation[energy] * self.CO2_EMISSIONS_FACTOR[energy] for energy in polluting_energies]
         # Get an unique emissions value
         total_emissions = sum(emissions)
 
         return total_emissions
 
-    def insert_raw_data(self, data: dict) -> None:
+    def _generate_document(self, emissions: dict, previous_day_str: str) -> dict:
+        """
+        Generates a document to be inserted into the database
+
+        Parameters
+        ----------
+        emissions : dict
+            Dictionary containing the emissions related data
+
+        previous_day_date_str : str
+            Previous day date as a string
+
+        Returns
+        -------
+        document : dict
+            Dictionary containing the document information
+        """
+        # Generates a datetime object from a date string
+        previous_day = datetime.strptime(previous_day_str, '%Y-%m-%d')
+
+        document = {
+            'date': previous_day,
+            'emissions': emissions
+        }
+
+        return document
+
+    def _insert_document(self, document: dict) -> None:
         """
         Inserts a new record in the database
 
@@ -142,4 +177,4 @@ class DataCollector:
         # Gets the collection which stores raw data
         collection = self._connection.raw_collector
 
-        collection.insert_one(data)
+        collection.insert_one(document)
