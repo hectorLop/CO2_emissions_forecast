@@ -21,6 +21,7 @@ class DataCollector:
         'gf': 0.7,
         'termRenov': 0.27
     }
+    DATE_FORMAT = '%Y-%m-%d'
 
     def __init__(self) -> None:
         self._connection = self._create_connection()
@@ -53,7 +54,8 @@ class DataCollector:
 
         # Creates the document containing the data and inserts it into the database
         document = self._generate_document(emissions, previous_day_str)
-        self._insert_document(document)
+        
+        return self._insert_document(document)
 
     def _generate_previous_day_date(self) -> str:
         """
@@ -66,7 +68,7 @@ class DataCollector:
         """
         today = date.today()
         previous_day = today - timedelta(days=1)
-        previous_day_str = previous_day.strftime('%Y-%m-%d')
+        previous_day_str = previous_day.strftime(self.DATE_FORMAT)
 
         return previous_day_str
 
@@ -156,7 +158,7 @@ class DataCollector:
             Dictionary containing the document information
         """
         # Generates a datetime object from a date string
-        previous_day = datetime.strptime(previous_day_str, '%Y-%m-%d')
+        previous_day = datetime.strptime(previous_day_str, self.DATE_FORMAT)
 
         document = {
             'date': previous_day,
@@ -165,7 +167,7 @@ class DataCollector:
 
         return document
 
-    def _insert_document(self, document: dict) -> None:
+    def _insert_document(self, document: dict) -> object:
         """
         Inserts a new record in the database
 
@@ -176,5 +178,5 @@ class DataCollector:
         """
         # Gets the collection which stores raw data
         collection = self._connection.raw_collector
-
-        collection.insert_one(document)
+        
+        return collection.insert_one(document)
