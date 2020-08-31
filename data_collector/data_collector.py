@@ -4,6 +4,7 @@ from datetime import date, timedelta, datetime
 import requests
 import json
 from typing import Dict, List
+from pymongo.results import InsertOneResult
 
 class DataCollector:
     """
@@ -40,9 +41,33 @@ class DataCollector:
 
         return db_connector.connect_to_db(self.DB_INFO_PATH)
 
-    def retrieve_last_day(self) -> None:
+    def insert_document(self, document: dict) -> InsertOneResult:
+        """
+        Inserts a new record in the database
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing the data to be stored
+
+        Returns
+        -------
+        result : InsertOneResult
+            Instance of InsertOneResult which contains the document _id
+        """
+        # Gets the collection which stores raw data
+        collection = self._connection.raw_collector
+        
+        return collection.insert_one(document)
+
+    def retrieve_last_day(self) -> dict:
         """
         Retrieves data from the previous day
+
+        Returns
+        -------
+        document : dict
+            Dictionary containing information about the emissions from the previous day
         """
         # Generates the endpoint from which obtain the data
         previous_day_str = self._generate_previous_day_date()
@@ -52,10 +77,11 @@ class DataCollector:
         # Generates the emissions data from the energy_data
         emissions = self._generate_emissions(energy_data)
 
-        # Creates the document containing the data and inserts it into the database
+        # Creates the document ready to be inserted into the database
         document = self._generate_document(emissions, previous_day_str)
+        print(document)
         
-        return self._insert_document(document)
+        return document
 
     def _generate_previous_day_date(self) -> str:
         """
@@ -166,17 +192,3 @@ class DataCollector:
         }
 
         return document
-
-    def _insert_document(self, document: dict) -> object:
-        """
-        Inserts a new record in the database
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing the data to be stored
-        """
-        # Gets the collection which stores raw data
-        collection = self._connection.raw_collector
-        
-        return collection.insert_one(document)
