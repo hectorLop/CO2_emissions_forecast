@@ -4,31 +4,7 @@ from ..cleaning_transformers import RemoveDateErrors, RemoveDuplicates
 import pandas
 from pandas.testing import assert_frame_equal
 from sklearn.pipeline import Pipeline
-
-@pytest.fixture
-def supply_pipelines() -> dict:
-    """
-    Provide a dictionary containing the cleaning and the preparation pipelines
-    """
-    cleaning_pipeline = Pipeline([
-        ('remove_duplicates', RemoveDuplicates('Dates')),
-        ('remove_errors', RemoveDateErrors('Dates'))
-    ])
-
-    preparation_pipeline = Pipeline([
-        ('convert_to_datetime', ConvertToDatetime('Dates')),
-        ('sort_by_index', SortByIndex('Dates')),
-        ('set_frequency', SetFrequency('10min')),
-        ('interpolation', Interpolation()),
-        ('resampler', Resampler('H', 'Emissions')),
-        ('boxcox', BoxCox('Emissions'))
-    ])
-
-    pipelines = {}
-    pipelines['cleaning'] = cleaning_pipeline
-    pipelines['preparation'] = preparation_pipeline
-
-    return pipelines
+from ...tests_fixtures.fixtures import supply_pipelines
 
 def test_cleaning_pipeline(supply_pipelines):
     """
@@ -65,9 +41,9 @@ def test_cleaning_pipeline(supply_pipelines):
                     12, 13, 14]
     })
 
-    # Apply yhe pipeline to the data
+    # Applies the pipeline to the data
     cleaned_data = cleaning_pipeline.fit_transform(original_df)
-    # Get back a default index
+    # Gets back a default index
     cleaned_data = cleaned_data.reset_index(drop=True)
 
     assert_frame_equal(cleaned_data, expected_df)
@@ -96,7 +72,7 @@ def test_preparation_pipeline(supply_pipelines):
     expected_df = pandas.DataFrame({
         'Emissions': [0.693147, 1.609438]
     }, index=pandas.date_range('20200101 01:00:00', freq='H', periods=2))
-    # Set the name of the index the same as the name of the date column of original_df
+    # Sets the name of the index the same as the name of the date column in original_df
     expected_df.index.name = 'Dates'
 
     prepared_df = preparation_pipeline.fit_transform(original_df)
@@ -133,6 +109,7 @@ def test_cleaning_and_preparation_pipelines(supply_pipelines):
     expected_df = pandas.DataFrame({
         'Emissions': [0.693147, 1.609438]
     }, index=pandas.date_range('20200101 01:00:00', freq='H', periods=2))
+    # Sets the name of the index the same as the name of the date column in original_df
     expected_df.index.name = 'Dates'
 
     result = combined_pipeline.fit_transform(original_df)

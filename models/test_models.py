@@ -5,32 +5,7 @@ import pandas
 from pandas.testing import assert_frame_equal
 from sklearn.pipeline import Pipeline
 from .custom_estimators import ARIMAEstimator, ProphetEstimator
-from ..tests_fixtures.fixtures import supply_df
-
-@pytest.fixture
-def supply_pipelines() -> dict:
-    """
-    Provide a dictionary containing the cleaning and the preparation pipelines
-    """
-    cleaning_pipeline = Pipeline([
-        ('remove_duplicates', RemoveDuplicates('Dates')),
-        ('remove_errors', RemoveDateErrors('Dates'))
-    ])
-
-    preparation_pipeline = Pipeline([
-        ('convert_to_datetime', ConvertToDatetime('Dates')),
-        ('sort_by_index', SortByIndex('Dates')),
-        ('set_frequency', SetFrequency('10min')),
-        ('interpolation', Interpolation()),
-        ('resampler', Resampler('H', 'Emissions')),
-        ('boxcox', BoxCox('Emissions'))
-    ])
-
-    pipelines = {}
-    pipelines['cleaning'] = cleaning_pipeline
-    pipelines['preparation'] = preparation_pipeline
-
-    return pipelines
+from ..tests_fixtures.fixtures import supply_df, supply_pipelines
 
 def test_arima_estimator(supply_pipelines):
     """
