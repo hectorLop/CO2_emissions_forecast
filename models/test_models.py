@@ -1,75 +1,81 @@
 import pytest
-from ..transformers.preparation_transformers import *
-from ..transformers.cleaning_transformers import RemoveDateErrors, RemoveDuplicates
 import pandas
-from pandas.testing import assert_frame_equal
-from sklearn.pipeline import Pipeline
+import numpy
 from .custom_estimators import ARIMAEstimator, ProphetEstimator
 from ..tests_fixtures.fixtures import supply_df, supply_pipelines
 
-def test_arima_estimator(supply_pipelines):
+@pytest.fixture
+def supply_fitted_arima(supply_df: pandas.DataFrame) -> None:
     """
-    Test if the ARIMA estimator is capable of yield predictions
-    """
-    transformation_pipeline = Pipeline([
-        ('cleaning', supply_pipelines['cleaning']),
-        ('preparation', supply_pipelines['preparation'])
-    ])
+    Supplies a trained ARIMA model
 
-    original_df = pandas.DataFrame({
-        'Dates': ['2020-01-01 01:00', '2020-01-01 01:10',
-                '2020-01-01 01:10', '2020-01-01 01:20',
-                '2020-01-01 01:20', '2020-01-01 01:30',
-                '2020-01-01 01:40', '2020-01-01 01:50',
-                '2020-01-01 2A:00', '2020-01-01 2A:10',
-                '2020-01-01 2A:20', '2020-01-01 2A:30',
-                '2020-01-01 2A:40', '2020-01-01 2A:50',
-                '2020-01-01 2B:00', '2020-01-01 2B:10',
-                '2020-01-01 03:00', '2020-01-01 03:10',
-                '2020-01-01 03:20', '2020-01-01 03:30',
-                '2020-01-01 03:40', '2020-01-01 03:50',
-                '2020-01-01 04:00', '2020-01-01 04:10',
-                '2020-01-01 04:20', '2020-01-01 04:30',
-                '2020-01-01 04:40', '2020-01-01 04:50'],
-        'Emissions': [2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5,
-                    5, 5, 5, 8, 8, 2, 2, 2, 2, 2, 2, 5,
-                    5, 5, 5, 5, 5]
-    })
-    
-    # Creates the ARIMA estimator
+    Parameters
+    ----------
+    supply_df : pandas.DataFrame
+        DataFrame containing a test dataset
+    """
     arima = ARIMAEstimator()
 
-    pipeline = Pipeline([
-        ('transformers', transformation_pipeline),
-        ('estimator', ARIMAEstimator())
-    ])
+    return arima.fit(supply_df)
 
-    # Prepares the data
-    prepared_data = transformation_pipeline.fit_transform(original_df)
+@pytest.fixture
+def supply_fitted_prophet(supply_df: pandas.DataFrame) -> None:
+    """
+    Supplies a trained Prophet model
 
-    # Trains the model
-    arima.fit(prepared_data)
-    
-    # Generates predictions of 1 step in the future
-    predictions = arima.predict(1)
-    # Transforms the predicted values to its original scale
-    predictions = transformation_pipeline['preparation']['boxcox'].inverse_transform(predictions)
+    Parameters
+    ----------
+    supply_df : pandas.DataFrame
+        DataFrame containing a test dataset
+    """
+    prophet = ProphetEstimator()
 
-    # Assert if the predictions values are a numpy array
+    return prophet.fit(supply_df)
+
+def test_fit_arima_estimator(mocker, supply_df: pandas.DataFrame) -> None:
+    """
+    Tests the ARIMA fit method
+
+    Parameters
+    ----------
+    mocker : object
+        Mocker object
+
+    supply_df : pandas.DataFrame
+        DataFrame containing a test dataset
+    """
+    arima = ARIMAEstimator()
+    # Mocks the inner fit method of the SARIMAX model
+    mocker.patch('statsmodels.tsa.statespace.sarimax.SARIMAX.fit')
+    arima.fit(supply_df)
+
+    assert arima._model_results is not None
+
+def test_predict_arima_estimator(supply_fitted_arima: ARIMAEstimator) -> None:
+    """
+    Tests the ARIMA predict method
+
+    Parameters
+    ----------
+    supply_fitted_arima : ArimaEstimator
+        ARIMA trained model
+    """
+    predictions = supply_fitted_arima.predict(1)
+
     assert isinstance(predictions.values, numpy.ndarray)
+    assert predictions.values
+    assert isinstance(predictions.values[0], float)
 
-def test_arima_get_info(supply_df):
+def test_arima_get_info(supply_fitted_arima: ARIMAEstimator) -> None:
     """
     Test if the information returned by the model is correct
 
     Parameters
     ----------
-    supply_df : pandas.DataFrame
-        DataFrame containing data to test the models 
+    supply_fitted_arima : ARIMAEstimator
+        ARIMA trained model 
     """
-    arima = ARIMAEstimator()
-    arima.fit(supply_df)
-    info = arima.get_info()
+    info = supply_fitted_arima.get_info()
 
     assert isinstance(info, dict)
     assert info['name'] == 'SARIMA'
@@ -77,64 +83,53 @@ def test_arima_get_info(supply_df):
     assert isinstance(info['parameters']['non_seasonal_params'], tuple)
     assert isinstance(info['parameters']['seasonal_params'], tuple)
 
-def test_prophet_estimator(supply_pipelines):
+def test_fit_prophet_estimator(mocker, supply_df: pandas.DataFrame, supply_fitted_prophet: ProphetEstimator) -> None:
     """
-    Test if the Prophet estimator is capable of yield predictions
-    """
-    transformation_pipeline = Pipeline([
-        ('cleaning', supply_pipelines['cleaning']),
-        ('preparation', supply_pipelines['preparation'])
-    ])
+    Test the Prophet fit method
 
-    original_df = pandas.DataFrame({
-        'Dates': ['2020-01-01 01:00', '2020-01-01 01:10',
-                '2020-01-01 01:10', '2020-01-01 01:20',
-                '2020-01-01 01:20', '2020-01-01 01:30',
-                '2020-01-01 01:40', '2020-01-01 01:50',
-                '2020-01-01 2A:00', '2020-01-01 2A:10',
-                '2020-01-01 2A:20', '2020-01-01 2A:30',
-                '2020-01-01 2A:40', '2020-01-01 2A:50',
-                '2020-01-01 2B:00', '2020-01-01 2B:10',
-                '2020-01-01 03:00', '2020-01-01 03:10',
-                '2020-01-01 03:20', '2020-01-01 03:30',
-                '2020-01-01 03:40', '2020-01-01 03:50',
-                '2020-01-01 04:00', '2020-01-01 04:10',
-                '2020-01-01 04:20', '2020-01-01 04:30',
-                '2020-01-01 04:40', '2020-01-01 04:50'],
-        'Emissions': [2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5,
-                    5, 5, 5, 8, 8, 2, 2, 2, 2, 2, 2, 5,
-                    5, 5, 5, 5, 5]
-    })
-    
-    # Creates the ARIMA estimator
+    Parameters
+    ----------
+    supply_df : pandas.DataFrame
+        DataFrame containing a test dataset
+
+    supply_fitted_prophet : ProphetEstimator
+        Prophet trained model
+    """
+    # Creates the Prophet estimator
     prophet = ProphetEstimator()
-
-    # Prepares the data
-    prepared_data = transformation_pipeline.fit_transform(original_df)
-
     # Trains the model
-    prophet.fit(prepared_data)
-    
-    # Generates predictions of 1 step in the future
-    predictions = prophet.predict(1)
-    # Transforms the predicted values to its original scale
-    predictions = transformation_pipeline['preparation']['boxcox'].inverse_transform(predictions)
+    mocker.patch('fbprophet.Prophet.fit', return_value=supply_fitted_prophet._model)
+    prophet.fit(supply_df)
 
-    # Assert if the predictions values are a numpy array
+    # Asserts the params attribute is not empty
+    assert prophet._model.params
+
+def test_predict_prophet_estimator(supply_fitted_prophet) -> None:
+    """
+    Test the Prophet predict method
+
+    Parameters
+    ----------
+    supply_fitted_prophet : ProphetEstimator
+        Prophet trained model
+    """
+    predictions = supply_fitted_prophet.predict(1)
+
     assert isinstance(predictions.values, numpy.ndarray)
+    assert predictions.values
+    print(predictions.values)
+    assert isinstance(predictions.values[0], float)
 
-def test_prophet_get_info(supply_df):
+def test_prophet_get_info(supply_fitted_prophet: ProphetEstimator):
     """
     Test if the information returned by the model is correct
 
     Parameters
     ----------
-    supply_df : pandas.DataFrame
-        DataFrame containing data to test the models
+    supply_fitted_prophet : ProphetEstimator
+        Prophet trained model
     """ 
-    prophet = ProphetEstimator()
-    prophet.fit(supply_df)
-    info = prophet.get_info()
+    info = supply_fitted_prophet.get_info()
 
     assert isinstance(info, dict)
     assert info['name'] == 'Prophet'

@@ -267,7 +267,7 @@ class ProphetEstimator(TimeSeriesEstimator):
             data = data.reset_index()
             data = data.rename(columns={data.columns[0]: "ds", data.columns[1]: "y"})
 
-        self._model.fit(data)
+        self._model = self._model.fit(data)
 
         return self
 
@@ -293,7 +293,7 @@ class ProphetEstimator(TimeSeriesEstimator):
 
         forecast = self._model.predict(future_df)
 
-        return forecast[['yhat']]
+        return forecast['yhat']
 
     def get_info(self) -> dict:
         info = {
