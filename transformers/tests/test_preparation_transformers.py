@@ -1,8 +1,9 @@
 import pytest
-from ..preparation_transformers import *
-from pandas.testing import assert_frame_equal, assert_index_equal
 import pandas
 import numpy
+
+from transformers.preparation_transformers import *
+from pandas.testing import assert_frame_equal
 from datetime import datetime
 from numpy.testing import assert_equal
 

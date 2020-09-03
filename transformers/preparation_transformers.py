@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Type
-from sklearn.base import TransformerMixin
+import numpy
 import pandas
+
+from sklearn.base import TransformerMixin
 from scipy.stats import boxcox
 from scipy.special import inv_boxcox
 
@@ -349,21 +350,21 @@ class BoxCox(TransformerMixin):
 
         return X
 
-    def inverse_transform(self, X: pandas.DataFrame, lambda: float) -> pandas.DataFrame:
+    def inverse_transform(self, values: numpy.ndarray) -> numpy.ndarray:
         """
         Revert the data to its original form
 
         Parameters
         ----------
-        X : pandas.DataFrame
-            DataFrame containing transformed data
+        values : numpy.ndarray
+            Numpy array contaning transformed values
 
         Returns
         -------
-        X : pandas.DataFrame
-            DataFrame containing the original data
+        values : numpy.ndarray
+            Numpy array contaning no-transformed values
         """
-        # Apply the transformation and learn the lambda 
-        X[self._column_name] = inv_boxcox(X[self._column_name], self._lambda)
+        # Apply the inverse transformation
+        values = inv_boxcox(values, self._lambda)
 
-        return X
+        return values
