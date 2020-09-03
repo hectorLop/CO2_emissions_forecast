@@ -1,5 +1,5 @@
-from ..bbdd.db_connector import DBConnector
-from ..bbdd.connectors import MongoConnector
+from bbdd.db_connector import DBConnector
+from bbdd.connectors import MongoConnector
 from datetime import date, timedelta, datetime
 import requests
 import json
@@ -79,7 +79,6 @@ class DataCollector:
 
         # Creates the document ready to be inserted into the database
         document = self._generate_document(emissions, previous_day_str)
-        print(document)
         
         return document
 
