@@ -186,7 +186,7 @@ class ARIMAEstimator(TimeSeriesEstimator):
         
         Returns
         -------
-        forecast : array_like
+        forecast : numpy.ndarray
             Array of out-of-sample forecasts
         """
         forecast = self._model_results.get_forecast(steps)
@@ -271,7 +271,7 @@ class ProphetEstimator(TimeSeriesEstimator):
 
         return self
 
-    def predict(self, steps=48, freq='H') -> pandas.DataFrame:
+    def predict(self, steps=48, freq='H') -> numpy.ndarray:
         """
         Returns a forecast of a given number of steps in the future.
 
@@ -286,14 +286,14 @@ class ProphetEstimator(TimeSeriesEstimator):
         
         Returns
         -------
-        forecast : pandas.DataFrame
+        forecast : numpy.ndarray
             DataFrame with forecasted values
         """
         future_df = self._model.make_future_dataframe(periods=steps, freq=freq, include_history=False)
 
         forecast = self._model.predict(future_df)
 
-        return forecast['yhat']
+        return forecast['yhat'].values
 
     def get_info(self) -> dict:
         info = {

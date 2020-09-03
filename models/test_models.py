@@ -1,8 +1,9 @@
 import pytest
 import pandas
 import numpy
-from .custom_estimators import ARIMAEstimator, ProphetEstimator
-from ..tests_fixtures.fixtures import supply_df, supply_pipelines
+
+from models.custom_estimators import ARIMAEstimator, ProphetEstimator
+from tests_fixtures.fixtures import supply_df, supply_pipelines
 
 @pytest.fixture
 def supply_fitted_arima(supply_df: pandas.DataFrame) -> None:
@@ -45,8 +46,9 @@ def test_fit_arima_estimator(mocker, supply_df: pandas.DataFrame) -> None:
         DataFrame containing a test dataset
     """
     arima = ARIMAEstimator()
+    
     # Mocks the inner fit method of the SARIMAX model
-    mocker.patch('statsmodels.tsa.statespace.sarimax.SARIMAX.fit')
+    mocker.patch('models.custom_estimators.SARIMAX.fit')
     arima.fit(supply_df)
 
     assert arima._model_results is not None
@@ -97,14 +99,15 @@ def test_fit_prophet_estimator(mocker, supply_df: pandas.DataFrame, supply_fitte
     """
     # Creates the Prophet estimator
     prophet = ProphetEstimator()
-    # Trains the model
-    mocker.patch('fbprophet.Prophet.fit', return_value=supply_fitted_prophet._model)
+    
+    # Mocks the inner fit method of the Prophet model
+    mocker.patch('models.custom_estimators.Prophet.fit', return_value=supply_fitted_prophet._model)
     prophet.fit(supply_df)
 
     # Asserts the params attribute is not empty
     assert prophet._model.params
 
-def test_predict_prophet_estimator(supply_fitted_prophet) -> None:
+def test_predict_prophet_estimator(supply_fitted_prophet: ProphetEstimator) -> None:
     """
     Test the Prophet predict method
 
@@ -115,10 +118,9 @@ def test_predict_prophet_estimator(supply_fitted_prophet) -> None:
     """
     predictions = supply_fitted_prophet.predict(1)
 
-    assert isinstance(predictions.values, numpy.ndarray)
-    assert predictions.values
-    print(predictions.values)
-    assert isinstance(predictions.values[0], float)
+    assert isinstance(predictions, numpy.ndarray)
+    assert predictions
+    assert isinstance(predictions[0], float)
 
 def test_prophet_get_info(supply_fitted_prophet: ProphetEstimator):
     """
