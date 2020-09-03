@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from .connectors import Connector
+from bbdd.connectors import Connector
 from configparser import ConfigParser
 
 class DBConnector():
@@ -44,7 +44,7 @@ class DBConnector():
         ini_path = os.path.join(os.getcwd(), ini_file)
         # Reads the config file with the database settings
         self._parser.read(ini_path)
-
+        # Initialises a connection using the info inside the config file
         connection = self._connector.connect(self._parser)
         
         return connection

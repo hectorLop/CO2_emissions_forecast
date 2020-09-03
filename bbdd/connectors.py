@@ -44,8 +44,8 @@ class PostgresConnector(Connector):
         connection = psycopg2.connect(user=config_parsed['postgres']['user'],
                                       password=config_parsed['postgres']['password'],
                                       host=config_parsed['postgres']['host'],
-                                      port=int(config_parsed['postgres']['port']),
-                                      database=config_parsed['postgres'['database']])
+                                      port=config_parsed['postgres']['port'],
+                                      database=config_parsed['postgres']['database'])
         
         return connection
 
@@ -71,7 +71,8 @@ class MongoConnector(Connector):
         connection : object
             Object which encapsulates a database session
         """
-        client = MongoClient(config_parsed['host'], int(config_parsed['port']))
+        client = MongoClient(config_parsed['mongo']['host'], int(config_parsed['mongo']['port']))
+        # Gets the database from the client
         connection = client.co2Project_hectorLop
 
         return connection
