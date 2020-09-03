@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
-from ..models.custom_estimators import ARIMAEstimator, ProphetEstimator
 import pandas
 import numpy
 import itertools
 import warnings
 warnings.filterwarnings("ignore")
+
+from abc import ABC, abstractmethod
+from models.custom_estimators import ARIMAEstimator, ProphetEstimator
 
 class GridSearch(ABC):
     """
@@ -37,9 +38,9 @@ class ARIMAGridSearch(GridSearch):
 
     def __init__(self, range_limit=2) -> None:
         self._range_limit = range_limit
-        self._pdq, self._seasonal_pdq = self.__generate_combinations_of_parameters()
+        self._pdq, self._seasonal_pdq = self._generate_combinations_of_parameters()
     
-    def __generate_combinations_of_parameters(self):
+    def _generate_combinations_of_parameters(self):
         """
         Generates the parameters combination for grid search
         """
@@ -83,7 +84,6 @@ class ARIMAGridSearch(GridSearch):
                 results = model.fit(train_data)
         
                 predictions = results.predict()
-                #predictions.predicted_mean = scipy.special.inv_boxcox(predictions.predicted_mean, lam)
         
                 mae = model.score(test_data.values, predictions.values)
         
