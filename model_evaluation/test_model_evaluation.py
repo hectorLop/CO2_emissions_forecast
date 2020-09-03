@@ -1,10 +1,12 @@
 import pytest
-from ..tests_fixtures.fixtures import supply_df
-from ..models.custom_estimators import ARIMAEstimator
-from .model_evaluation import ModelEvaluation
-from ..model_selector.model_selector import ModelSelector
+import numpy
 
-def test_model_evaluation(supply_df):
+from tests_fixtures.fixtures import supply_df
+from models.custom_estimators import ARIMAEstimator
+from model_evaluation.model_evaluation import ModelEvaluation
+from model_selector.model_selector import ModelSelector
+
+def test_model_evaluation(mocker, supply_df):
     """
     ModelEvaluation Unit test
 
@@ -15,29 +17,12 @@ def test_model_evaluation(supply_df):
     """
     model = ARIMAEstimator()
 
+    # Mocks model fit method
+    mocker.patch.object(model, 'fit')
+    # Mocks model predict method to return a numpy array with random values
+    mocker.patch.object(model, 'predict', return_value=numpy.random.rand(48))
+
     model_evaluation = ModelEvaluation(supply_df, model)
-
-    metrics = model_evaluation.cross_validation()
-
-    assert metrics['MAE']
-    assert metrics['RMSE']
-    assert metrics['MAPE']
-    assert metrics['fit_time']
-
-def test_model_evaluation_integration(supply_df):
-    """
-    ModelEvaluation integration test
-
-    Parameters
-    ----------
-    supply_df : pandas.DataFrame
-        DataFrame containing data to test the models
-    """
-    model_selector = ModelSelector(supply_df)
-
-    best_model = model_selector.select_best_model()
-
-    model_evaluation = ModelEvaluation(supply_df, best_model)
 
     metrics = model_evaluation.cross_validation()
 

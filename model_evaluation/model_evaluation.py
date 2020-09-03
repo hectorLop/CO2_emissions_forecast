@@ -1,10 +1,10 @@
-from typing import Callable, Tuple
-from numpy.core import test
 import pandas
-from ..models.custom_estimators import TimeSeriesEstimator
-from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_per
 import time
 import numpy
+
+from typing import Tuple
+from models.custom_estimators import TimeSeriesEstimator
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 class ModelEvaluation():
     """
@@ -69,7 +69,7 @@ class ModelEvaluation():
             predictions = self._model.predict()
 
             # Get some metrics from the predictions
-            mae, rmse, mape = self._get_metrics(test_data.values, predictions.values)
+            mae, rmse, mape = self._get_metrics(test_data.values, predictions)
 
             metrics['MAE'].append(mae)
             metrics['RMSE'].append(rmse)
