@@ -1,10 +1,10 @@
 import pytest
 import numpy
 
-from tests_fixtures.fixtures import supply_df
-from models.custom_estimators import ARIMAEstimator
-from model_evaluation.model_evaluation import ModelEvaluation
-from model_selector.model_selector import ModelSelector
+from tests.tests_fixtures.fixtures import supply_df
+from source.models.custom_estimators import ARIMAEstimator
+from source.model_evaluation.model_evaluation import ModelEvaluation
+from source.model_selector.model_selector import ModelSelector
 
 def test_model_evaluation(mocker, supply_df):
     """

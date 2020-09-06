@@ -1,6 +1,6 @@
 import pandas
 
-from model_trainer.grid_search import GridSearch, ARIMAGridSearch, ProphetGridSearch
+from source.model_trainer.grid_search import GridSearch, ARIMAGridSearch, ProphetGridSearch
 from typing import Tuple
 
 class ModelTrainer():

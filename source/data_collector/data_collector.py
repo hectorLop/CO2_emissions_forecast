@@ -1,5 +1,5 @@
-from bbdd.db_connector import DBConnector
-from bbdd.connectors import MongoConnector
+from source.bbdd.db_connector import DBConnector
+from source.bbdd.connectors import MongoConnector
 from datetime import date, timedelta, datetime
 import requests
 import json

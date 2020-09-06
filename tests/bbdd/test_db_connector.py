@@ -1,6 +1,6 @@
 import pytest
-from .db_connector import DBConnector
-from .connectors import PostgresConnector, MongoConnector
+from source.bbdd.db_connector import DBConnector
+from source.bbdd.connectors import PostgresConnector, MongoConnector
 
 def test_postgres_connector():
     """

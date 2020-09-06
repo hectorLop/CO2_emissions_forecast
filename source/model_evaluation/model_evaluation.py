@@ -3,7 +3,7 @@ import time
 import numpy
 
 from typing import Tuple
-from models.custom_estimators import TimeSeriesEstimator
+from source.models.custom_estimators import TimeSeriesEstimator
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 class ModelEvaluation():

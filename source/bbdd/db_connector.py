@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from bbdd.connectors import Connector
+from source.bbdd.connectors import Connector
 from configparser import ConfigParser
 
 class DBConnector():

@@ -1,10 +1,10 @@
 import pandas
 import numpy
 
-from model_trainer.grid_search import ARIMAGridSearch, ProphetGridSearch
-from model_trainer.model_trainer import ModelTrainer
+from source.model_trainer.grid_search import ARIMAGridSearch, ProphetGridSearch
+from source.model_trainer.model_trainer import ModelTrainer
 from typing import List
-from models.custom_estimators import TimeSeriesEstimator
+from source.models.custom_estimators import TimeSeriesEstimator
 
 class ModelSelector():
     """

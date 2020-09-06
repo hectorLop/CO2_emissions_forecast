@@ -1,8 +1,8 @@
 import pytest
 
-from model_trainer.grid_search import ARIMAGridSearch, ProphetGridSearch
-from tests_fixtures.fixtures import supply_df
-from models.custom_estimators import ARIMAEstimator, ProphetEstimator
+from source.model_trainer.grid_search import ARIMAGridSearch, ProphetGridSearch
+from tests.tests_fixtures.fixtures import supply_df
+from source.models.custom_estimators import ARIMAEstimator, ProphetEstimator
 
 def test_arima_grid_search(mocker, supply_df):
     """

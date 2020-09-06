@@ -2,8 +2,8 @@ import pytest
 import pandas
 import numpy
 
-from models.custom_estimators import ARIMAEstimator, ProphetEstimator
-from tests_fixtures.fixtures import supply_df, supply_pipelines
+from source.models.custom_estimators import ARIMAEstimator, ProphetEstimator
+from tests.tests_fixtures.fixtures import supply_df, supply_pipelines
 
 @pytest.fixture
 def supply_fitted_arima(supply_df: pandas.DataFrame) -> None:

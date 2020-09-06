@@ -1,10 +1,10 @@
 import pytest
-from ..preparation_transformers import *
-from ..cleaning_transformers import RemoveDateErrors, RemoveDuplicates
+from source.transformers.preparation_transformers import *
+from source.transformers.cleaning_transformers import RemoveDateErrors, RemoveDuplicates
 import pandas
 from pandas.testing import assert_frame_equal
 from sklearn.pipeline import Pipeline
-from ...tests_fixtures.fixtures import supply_pipelines
+from tests.tests_fixtures.fixtures import supply_pipelines
 
 def test_cleaning_pipeline(supply_pipelines):
     """

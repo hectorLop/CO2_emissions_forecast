@@ -1,5 +1,5 @@
 import pytest
-from data_collector.data_collector import DataCollector
+from source.data_collector.data_collector import DataCollector
 from datetime import datetime, date
 
 @pytest.fixture

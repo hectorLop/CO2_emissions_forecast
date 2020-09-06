@@ -1,8 +1,8 @@
 import pytest
 
-from model_selector.model_selector import ModelSelector
-from tests_fixtures.fixtures import supply_df
-from models.custom_estimators import TimeSeriesEstimator, ARIMAEstimator
+from source.model_selector.model_selector import ModelSelector
+from tests.tests_fixtures.fixtures import supply_df
+from source.models.custom_estimators import TimeSeriesEstimator, ARIMAEstimator
 
 def test_model_selector_select_best_model(mocker, supply_df):
     """
