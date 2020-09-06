@@ -12,7 +12,7 @@ class DataCollector:
     MongoDB is the chosen database. 
     """
 
-    DB_INFO_PATH = 'bbdd/db_info.ini'
+    DB_INFO_PATH = 'source/bbdd/db_info.ini'
     ENDPOINT_URL = 'https://demanda.ree.es/WSvisionaMovilesPeninsulaRest/resources/demandaGeneracionPeninsula?fecha='
     CO2_EMISSIONS_FACTOR = {
         'aut': 0.27,

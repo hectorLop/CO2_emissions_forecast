@@ -21,9 +21,9 @@ def test_arima_grid_search(mocker, supply_df):
     arima_grid_search = ARIMAGridSearch(range_limit=1)
 
     # Mocks the ArimaEstimator fit, predict and score methods inside grid_search
-    mocker.patch('model_trainer.grid_search.ARIMAEstimator.fit')
-    mocker.patch('model_trainer.grid_search.ARIMAEstimator.predict')
-    mocker.patch('model_trainer.grid_search.ARIMAEstimator.score', return_value=15.2)
+    mocker.patch('source.model_trainer.grid_search.ARIMAEstimator.fit')
+    mocker.patch('source.model_trainer.grid_search.ARIMAEstimator.predict')
+    mocker.patch('source.model_trainer.grid_search.ARIMAEstimator.score', return_value=15.2)
 
     results = arima_grid_search.grid_search(train_data, test_data)
 
@@ -49,9 +49,9 @@ def test_prophet_grid_search(mocker, supply_df):
     prophet_grid_search = ProphetGridSearch()
 
     # Mocks the ProphetEstimator fit, predict and score methods inside grid_search
-    mocker.patch('model_trainer.grid_search.ProphetEstimator.fit')
-    mocker.patch('model_trainer.grid_search.ProphetEstimator.predict')
-    mocker.patch('model_trainer.grid_search.ProphetEstimator.score', return_value=15.2)
+    mocker.patch('source.model_trainer.grid_search.ProphetEstimator.fit')
+    mocker.patch('source.model_trainer.grid_search.ProphetEstimator.predict')
+    mocker.patch('source.model_trainer.grid_search.ProphetEstimator.score', return_value=15.2)
 
     results = prophet_grid_search.grid_search(train_data, test_data)
 

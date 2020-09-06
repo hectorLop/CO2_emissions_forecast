@@ -24,7 +24,7 @@ def test_model_trainer_arima(mocker, supply_df):
     model_trainer_arima = ModelTrainer(supply_df, arima_grid_search)
 
     # Mocks the model grid search method which is already tested
-    mocker.patch('model_trainer.model_trainer.ARIMAGridSearch.grid_search', return_value=results)
+    mocker.patch('source.model_trainer.model_trainer.ARIMAGridSearch.grid_search', return_value=results)
     arima_results = model_trainer_arima.grid_search()
 
     assert isinstance(arima_results, dict)
@@ -52,7 +52,7 @@ def test_model_trainer_prophet(mocker, supply_df):
     model_trainer_prophet = ModelTrainer(supply_df, prophet_grid_search)
 
     # Mocks the model grid search method which is already tested
-    mocker.patch('model_trainer.model_trainer.ProphetGridSearch.grid_search', return_value=results)
+    mocker.patch('source.model_trainer.model_trainer.ProphetGridSearch.grid_search', return_value=results)
     prophet_results = model_trainer_prophet.grid_search()
 
     assert isinstance(prophet_results, dict)

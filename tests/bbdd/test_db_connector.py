@@ -9,7 +9,7 @@ def test_postgres_connector():
     connector = PostgresConnector()
     db_connector = DBConnector(connector)
 
-    connection = db_connector.connect_to_db('bbdd/db_info.ini')
+    connection = db_connector.connect_to_db('source/bbdd/db_info.ini')
 
     assert connection is not None
 
@@ -20,6 +20,6 @@ def test_mongo_connector():
     connector = MongoConnector()
     db_connector = DBConnector(connector)
 
-    connection = db_connector.connect_to_db('bbdd/db_info.ini')
+    connection = db_connector.connect_to_db('source/bbdd/db_info.ini')
 
     assert connection is not None

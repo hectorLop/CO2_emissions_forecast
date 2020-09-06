@@ -2,8 +2,8 @@ import pytest
 import pandas
 
 from sklearn.pipeline import Pipeline
-from transformers.preparation_transformers import *
-from transformers.cleaning_transformers import RemoveDateErrors, RemoveDuplicates
+from source.transformers.preparation_transformers import *
+from source.transformers.cleaning_transformers import RemoveDateErrors, RemoveDuplicates
 
 @pytest.fixture
 def supply_df() -> pandas.DataFrame:
@@ -11,7 +11,7 @@ def supply_df() -> pandas.DataFrame:
     Supplies a test dataframe
     """
     # Use this path due to the tests are executed from the main directory
-    df = pandas.read_csv('Test_Dataset_2020_01_01_to_2020_02_29.csv')
+    df = pandas.read_csv('tests/tests_fixtures/Test_Dataset_2020_01_01_to_2020_02_29.csv')
 
     # Converts the dates column to datetime object and sets it as the index 
     df['Fecha'] = pandas.to_datetime(df['Fecha'])

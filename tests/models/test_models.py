@@ -48,7 +48,7 @@ def test_fit_arima_estimator(mocker, supply_df: pandas.DataFrame) -> None:
     arima = ARIMAEstimator()
     
     # Mocks the inner fit method of the SARIMAX model
-    mocker.patch('models.custom_estimators.SARIMAX.fit')
+    mocker.patch('source.models.custom_estimators.SARIMAX.fit')
     arima.fit(supply_df)
 
     assert arima._model_results is not None
@@ -101,7 +101,7 @@ def test_fit_prophet_estimator(mocker, supply_df: pandas.DataFrame, supply_fitte
     prophet = ProphetEstimator()
     
     # Mocks the inner fit method of the Prophet model
-    mocker.patch('models.custom_estimators.Prophet.fit', return_value=supply_fitted_prophet._model)
+    mocker.patch('source.models.custom_estimators.Prophet.fit', return_value=supply_fitted_prophet._model)
     prophet.fit(supply_df)
 
     # Asserts the params attribute is not empty
