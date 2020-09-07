@@ -133,7 +133,7 @@ class MongoConnector(Connector):
     """
 
     def __init__(self) -> None:
-        pass
+        self_connection = None
 
     def connect(self, config_parsed: dict) -> object:
         """
@@ -151,6 +151,22 @@ class MongoConnector(Connector):
         """
         client = MongoClient(config_parsed['mongo']['host'], int(config_parsed['mongo']['port']))
         # Gets the database from the client
-        connection = client.co2Project_hectorLop
+        self_connection = client.co2Project_hectorLop
 
-        return connection
+        return self_connection
+
+    def insert_data(self, collection_name: str, values: dict) -> None:
+        """
+        Inserts data from a dictionary into a table
+
+        Parameters
+        ----------
+        collection_name : str
+            Collection name name
+
+        values : dict
+            Dictionary containing values to be inserted
+        """
+        collection = self._collection[collection_name]
+
+        collection.insert_one(values)
