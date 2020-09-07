@@ -1,5 +1,5 @@
 from source.bbdd.db_connector import DBConnector
-from source.bbdd.connectors import MongoConnector
+from source.bbdd.connectors import TimescaleConnector
 from datetime import date, timedelta, datetime
 import requests
 import json
@@ -9,7 +9,7 @@ from pymongo.results import InsertOneResult
 class DataCollector:
     """
     This class is responsible for obtaining the data and storing it in a database.
-    MongoDB is the chosen database. 
+    TimescaleDB is the chosen database. 
     """
 
     DB_INFO_PATH = 'source/bbdd/db_info.ini'
@@ -37,7 +37,7 @@ class DataCollector:
             Object which handles the connection to the database
         """
         # Initializes a DBConnector with a MongoConnector
-        db_connector = DBConnector(MongoConnector())
+        db_connector = DBConnector(TimescaleConnector())
 
         return db_connector.connect_to_db(self.DB_INFO_PATH)
 
@@ -60,14 +60,14 @@ class DataCollector:
         
         return collection.insert_one(document)
 
-    def retrieve_last_day(self) -> dict:
+    def retrieve_last_two_hours(self) -> dict:
         """
-        Retrieves data from the previous day
+        Retrieves data from the last two hours
 
         Returns
         -------
         document : dict
-            Dictionary containing information about the emissions from the previous day
+            Dictionary containing information about the emissions from the last two hours
         """
         # Generates the endpoint from which obtain the data
         previous_day_str = self._generate_previous_day_date()
@@ -76,11 +76,8 @@ class DataCollector:
         energy_data = self._retrieve_energy_data(endpoint)
         # Generates the emissions data from the energy_data
         emissions = self._generate_emissions(energy_data)
-
-        # Creates the document ready to be inserted into the database
-        document = self._generate_document(emissions, previous_day_str)
         
-        return document
+        return emissions
 
     def _generate_previous_day_date(self) -> str:
         """
@@ -99,7 +96,7 @@ class DataCollector:
 
     def _retrieve_energy_data(self, url: str) -> List[Dict]:
         """
-        Retrieve all the text from a given url
+        Retrieve the energy data from the last two hours
 
         Parameters
         ----------
@@ -118,10 +115,12 @@ class DataCollector:
         # Cleans the data to leave only the json part
         data = data.replace('null({"valoresHorariosGeneracion":', '')
         data = data.replace('});', '')
-        # Decodes the json
+
         json_data = json.loads(data)
 
-        return json_data
+        # Returns the last 12 elements which are the last 2 hours due to the data
+        # is in a 10 minutes time format
+        return json_data[-12:]
 
     def _generate_emissions(self, json_data: List[Dict]) -> dict:
         """
@@ -129,6 +128,7 @@ class DataCollector:
         The dictionary has the following format e.g :
         {
             '2020-08-27 21:00': 1000,
+            '2020-08-27 21:10': 1200,
             ...
         }
         """
@@ -164,30 +164,3 @@ class DataCollector:
         total_emissions = sum(emissions)
 
         return total_emissions
-
-    def _generate_document(self, emissions: dict, previous_day_str: str) -> dict:
-        """
-        Generates a document to be inserted into the database
-
-        Parameters
-        ----------
-        emissions : dict
-            Dictionary containing the emissions related data
-
-        previous_day_date_str : str
-            Previous day date as a string
-
-        Returns
-        -------
-        document : dict
-            Dictionary containing the document information
-        """
-        # Generates a datetime object from a date string
-        previous_day = datetime.strptime(previous_day_str, self.DATE_FORMAT)
-
-        document = {
-            'date': previous_day,
-            'emissions': emissions
-        }
-
-        return document
