@@ -57,8 +57,8 @@ class DataCollector:
             Dictionary containing information about the emissions from the last two hours
         """
         # Generates the endpoint from which obtain the data
-        previous_day_str = self._generate_previous_day_date()
-        endpoint = self.ENDPOINT_URL + previous_day_str
+        today_str = self._generate_today_date()
+        endpoint = self.ENDPOINT_URL + today_str
         # Retrieves the data from the endpoint
         energy_data = self._retrieve_energy_data(endpoint)
         # Generates the emissions data from the energy_data
@@ -66,20 +66,19 @@ class DataCollector:
         
         return emissions
 
-    def _generate_previous_day_date(self) -> str:
+    def _generate_today_date(self) -> str:
         """
-        Generates the endpoint for the previous day data
+        Generates the endpoint to retrieving today's data
 
         Returns
         -------
         endpoint : str
-            Endpoint to retrieve the previous day data
+            Endpoint to retrieving today's data
         """
         today = date.today()
-        previous_day = today - timedelta(days=1)
-        previous_day_str = previous_day.strftime(self.DATE_FORMAT)
+        today_str = today.strftime(self.DATE_FORMAT)
 
-        return previous_day_str
+        return today_str
 
     def _retrieve_energy_data(self, url: str) -> List[Dict]:
         """
