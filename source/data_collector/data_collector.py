@@ -3,8 +3,7 @@ from source.bbdd.connectors import TimescaleConnector
 from datetime import date, timedelta
 import requests
 import json
-from typing import Dict, List
-from pymongo.results import InsertOneResult
+from typing import Dict, List, Tuple
 
 class DataCollector:
     """
@@ -35,26 +34,26 @@ class DataCollector:
         self._db_connector = DBConnector(TimescaleConnector())
         self._db_connector.connect_to_db(self.DB_INFO_PATH)
 
-    def insert_data(self, values: dict) -> None:
+    def insert_data(self, values: List[Tuple]) -> None:
         """
         Inserts a new record in the database
 
         Parameters
         ----------
-        values : dict
-            Dictionary containing the data to be inserted
+        values : List[Tuple]
+            List containing a tuple for each observation
         """
         
         return self._db_connector.insert_data('emissions', values)
 
-    def retrieve_last_two_hours(self) -> dict:
+    def retrieve_last_two_hours(self) -> List[Tuple]:
         """
         Retrieves data from the last two hours
 
         Returns
         -------
-        document : dict
-            Dictionary containing information about the emissions from the last two hours
+        emissions : List[Tuple]
+            List containing a tuple for each observation
         """
         # Generates the endpoint from which obtain the data
         today_str = self._generate_today_date()
@@ -108,21 +107,28 @@ class DataCollector:
         # is in a 10 minutes time format
         return json_data[-12:]
 
-    def _generate_emissions(self, json_data: List[Dict]) -> dict:
+    def _generate_emissions(self, json_data: List[Dict]) -> List[Tuple]:
         """
-        Generates a new dictionary which contains the emissions for each timestamp.
-        The dictionary has the following format e.g :
-        {
-            '2020-08-27 21:00': 1000,
-            '2020-08-27 21:10': 1200,
+        Generates a new list which contains the emissions for each timestamp.
+        The list has the following format e.g :
+        [
+            ('2020-08-27 21:00', 1000),
+            ('2020-08-27 21:10', 1200),
             ...
-        }
-        """
-        emissions = {}
+        ]
 
-        for observation in json_data:
-            timestamp = observation['ts']
-            emissions[timestamp] = self._compute_emissions(observation)
+        Parameters
+        ----------
+        json_data : List[Dict]
+            List of dictionaries. Each dictionary contains the data for one observation
+
+        Returns
+        -------
+        emissions : List[Tuple]
+            List of tuples. Each tuples represents one observation
+        """
+        # Creates a list of tuples with the format (time, emission_value)
+        emissions = [(observation['ts'], self._compute_emissions(observation)) for observation in json_data]
 
         return emissions
 
