@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 from source.bbdd.connectors import Connector
 from configparser import ConfigParser
+from typing import List, Tuple
 
 class DBConnector():
     """
@@ -48,3 +49,17 @@ class DBConnector():
         connection = self._connector.connect(self._parser)
         
         return connection
+
+    def insert_data(self, name: str, values: List[Tuple]) -> None:
+        """
+        Inserts data from a dictionary into a table
+
+        Parameters
+        ----------
+        name : str
+            Table or collection name
+
+        values : List[Tuple]
+            List containing a tuple for each observation
+        """
+        self._connector.insert_data(name, values)

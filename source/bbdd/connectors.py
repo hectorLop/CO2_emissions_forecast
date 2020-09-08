@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import psycopg2
 from pymongo import MongoClient
+from typing import List, Tuple
 
 class Connector(ABC):
     """
@@ -20,7 +21,7 @@ class Connector(ABC):
         pass
 
     @abstractmethod
-    def insert_data(self, name: str, values: dict) -> None:
+    def insert_data(self, name: str, values: List[Tuple]) -> None:
         """
         Inserts data from a dictionary into a table or a collection
 
@@ -29,8 +30,8 @@ class Connector(ABC):
         name : str
             Table or collection name
 
-        values : dict
-            Dictionary containing values to be inserted
+        values : List[Tuple]
+            List containing a tuple for each observation
         """
         pass
 
@@ -64,7 +65,7 @@ class PostgresConnector(Connector):
         
         return self._connection
 
-    def insert_data(self, table_name: str, values: dict) -> None:
+    def insert_data(self, table_name: str, values: List[Tuple]) -> None:
         """
         Inserts data from a dictionary into a table
 
@@ -73,16 +74,14 @@ class PostgresConnector(Connector):
         name : str
             Table name
 
-        values : dict
-            Dictionary containing values to be inserted
+        values : List[Tuple]
+            List containing a tuple for each observation
         """
-        query = f"""
-            INSERT INTO {table_name}
-            VALUES (?, ?)
-        """
-
-        for key in values.keys():
-            self._query(query, (key, values[key]))
+        # Creates an argument string to speed up the inserts
+        argument_string = ",".join(f'({time}, {value})' for (time, value) in values)
+        query = f'INSERT INTO {table_name} VALUES' + argument_string
+        
+        self._query(query)
 
     def _query(self, query: str, values=None) -> None:
         """
@@ -98,8 +97,12 @@ class PostgresConnector(Connector):
         """
         cursor = self._connection.cursor()
         cursor.execute(query, values)
-        cursor.close()
+        
+        # Commit the changes to the database
+        self._connection.commit()
 
+        cursor.close()
+    
 class TimescaleConnector(PostgresConnector):
     """
     Connection to a Timescale database.
