@@ -1,6 +1,6 @@
 from source.bbdd.db_connector import DBConnector
 from source.bbdd.connectors import TimescaleConnector
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 import requests
 import json
 from typing import Dict, List
@@ -10,6 +10,12 @@ class DataCollector:
     """
     This class is responsible for obtaining the data and storing it in a database.
     TimescaleDB is the chosen database. 
+
+    Attributes
+    ----------
+    _db_connector : DBConnector
+        DBConnector object that handles the creation of the connection with the database and
+        the inserting data
     """
 
     DB_INFO_PATH = 'source/bbdd/db_info.ini'
@@ -25,40 +31,21 @@ class DataCollector:
     DATE_FORMAT = '%Y-%m-%d'
 
     def __init__(self) -> None:
-        self._connection = self._create_connection()
+        # Initializes a DBConnector with a Timescale database
+        self._db_connector = DBConnector(TimescaleConnector())
+        self._db_connector.connect_to_db(self.DB_INFO_PATH)
 
-    def _create_connection(self) -> object:
-        """
-        Creates a connection with a database
-
-        Returns
-        -------
-        connection : object
-            Object which handles the connection to the database
-        """
-        # Initializes a DBConnector with a MongoConnector
-        db_connector = DBConnector(TimescaleConnector())
-
-        return db_connector.connect_to_db(self.DB_INFO_PATH)
-
-    def insert_document(self, document: dict) -> InsertOneResult:
+    def insert_data(self, values: dict) -> None:
         """
         Inserts a new record in the database
 
         Parameters
         ----------
-        data : dict
-            Dictionary containing the data to be stored
-
-        Returns
-        -------
-        result : InsertOneResult
-            Instance of InsertOneResult which contains the document _id
+        values : dict
+            Dictionary containing the data to be inserted
         """
-        # Gets the collection which stores raw data
-        collection = self._connection.raw_collector
         
-        return collection.insert_one(document)
+        return self._db_connector.insert_data('emissions', values)
 
     def retrieve_last_two_hours(self) -> dict:
         """
