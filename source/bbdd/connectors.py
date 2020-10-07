@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import psycopg2
-from pymongo import MongoClient
 from typing import List, Tuple
 
 class Connector(ABC):
@@ -129,47 +128,3 @@ class TimescaleConnector(PostgresConnector):
                                       database=config_parsed['timescale']['database'])
         
         return connection
-
-class MongoConnector(Connector):
-    """
-    Connection to a MongoDB database
-    """
-
-    def __init__(self) -> None:
-        self_connection = None
-
-    def connect(self, config_parsed: dict) -> object:
-        """
-        Establish connection with a MongoDB database
-
-        Parameters
-        ----------
-        config_parsed : dict
-            Dictionary containing database settings
-
-        Returns
-        -------
-        connection : object
-            Object which encapsulates a database session
-        """
-        client = MongoClient(config_parsed['mongo']['host'], int(config_parsed['mongo']['port']))
-        # Gets the database from the client
-        self_connection = client.co2Project_hectorLop
-
-        return self_connection
-
-    def insert_data(self, collection_name: str, values: dict) -> None:
-        """
-        Inserts data from a dictionary into a table
-
-        Parameters
-        ----------
-        collection_name : str
-            Collection name name
-
-        values : dict
-            Dictionary containing values to be inserted
-        """
-        collection = self._collection[collection_name]
-
-        collection.insert_one(values)
