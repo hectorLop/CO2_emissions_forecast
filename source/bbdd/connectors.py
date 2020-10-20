@@ -63,46 +63,8 @@ class PostgresConnector(Connector):
                                       database=config_parsed['postgres']['database'])
         
         return self._connection
-
-    def insert_data(self, table_name: str, values: List[Tuple]) -> None:
-        """
-        Inserts data from a dictionary into a table
-
-        Parameters
-        ----------
-        name : str
-            Table name
-
-        values : List[Tuple]
-            List containing a tuple for each observation
-        """
-        # Creates an argument string to speed up the inserts
-        argument_string = ",".join(f'({time}, {value})' for (time, value) in values)
-        query = f'INSERT INTO {table_name} VALUES' + argument_string
-        
-        self._query(query)
-
-    def _query(self, query: str, values=None) -> None:
-        """
-        Makes a query to the database
-
-        Parameters
-        ----------
-        query : str
-            Query as a string
-
-        values : tuple
-            Tuple containing the query values. Default is None
-        """
-        cursor = self._connection.cursor()
-        cursor.execute(query, values)
-        
-        # Commit the changes to the database
-        self._connection.commit()
-
-        cursor.close()
     
-class TimescaleConnector(PostgresConnector):
+class TimescaleConnector(Connector):
     """
     Connection to a Timescale database.
     """

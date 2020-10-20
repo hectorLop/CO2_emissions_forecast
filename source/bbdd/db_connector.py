@@ -50,9 +50,9 @@ class DBConnector():
         
         return connection
 
-    def insert_data(self, name: str, values: List[Tuple]) -> None:
+    def insert_data(self, table_name: str, values: List[Tuple]) -> None:
         """
-        Inserts data from a dictionary into a table
+        Inserts data from a list of tuples into a table
 
         Parameters
         ----------
@@ -62,4 +62,4 @@ class DBConnector():
         values : List[Tuple]
             List containing a tuple for each observation
         """
-        self._connector.insert_data(name, values)
+        self._connector.insert_data(table_name, values)
