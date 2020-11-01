@@ -1,3 +1,4 @@
+from source.bbdd.emissions import EmissionsManager
 from source.bbdd.db_connector import DBConnector
 from source.bbdd.connectors import TimescaleConnector
 from datetime import date, timedelta, datetime
@@ -32,28 +33,45 @@ class DataCollector:
     def __init__(self) -> None:
         # Initializes a DBConnector with a Timescale database
         self._db_connector = DBConnector(TimescaleConnector())
-        self._db_connector.connect_to_db(self.DB_INFO_PATH)
+        connection = self._db_connector.connect_to_db(self.DB_INFO_PATH)
+        # Creates the emission manager to handle CRUD operations
+        self._emissions_manager = EmissionsManager(connection)
 
-    def insert_data(self, values: List[Tuple]) -> None:
+    def collect_data(self) -> bool:
         """
-        Inserts a new record in the database
+        Collects new emissions data.
 
-        Parameters
-        ----------
-        values : List[Tuple]
-            List containing a tuple for each observation
+        Returns
+        -------
+        collected : bool
+            True if it has collected new data succesfully.
         """
-        
-        return self._db_connector.insert_data('emissions', values)
+        emissions = self._retrieve_last_six_hours()
 
-    def retrieve_last_two_hours(self) -> List[Tuple]:
+        return self._emissions_manager.insert_emissions(emissions)
+
+    def collect_outdated_data(self) -> bool:
+        """
+        Collects outdated emissions data.
+
+        Returns
+        -------
+        collected : bool
+            True if it has collected new data succesfully.
+        """
+        emissions = self._retrieve_outdated_data()
+
+        return self._emissions_manager.insert_emissions(emissions)
+
+    def _retrieve_last_six_hours(self) -> List[Tuple[str, str, float]]:
         """
         Retrieves data from the last two hours
 
         Returns
         -------
-        emissions : List[Tuple]
-            List containing a tuple for each observation
+        emissions : List[Tuple[str, str, float]]
+            List of tuples. Each tuple is composed of (date, hour, value), being the date
+            and the hour of type string and the value of tyoe float
         """
         # Generates the endpoint from which obtain the data
         today_str = self._generate_today_date()
@@ -63,18 +81,25 @@ class DataCollector:
 
         # Uses the last 12 elements which are the last 2 hours due to the data
         # is in a 10 minutes time format
-        emissions = self._generate_emissions(energy_data[-12:])
+        emissions = self._generate_emissions(energy_data[-36:])
         
         return emissions
 
-    def setup_db(self) -> None:
+    def _retrieve_outdated_data(self) -> List[Tuple[str, str, float]]:
         """
-        Configure the database with the emissions data.
-        If the database is empty, it gets the data from 2015-01-01 and
-        if not, it gets them since the last update
+        Retrieves the emissions to update the database. It has two cases of use:
+        the first when the database contains outdated emissions, therefore it will 
+        update the emissions since the most recent date, and the last when the database is empty,
+        where it will insert the emissions from January of 2015 until today.
+
+        Returns
+        -------
+        emissions : List[Tuple[str, str, float]]
+            List of tuples. Each tuple is composed of (date, hour, value), being the date
+            and the hour of type string and the value of tyoe float
         """
         # Gets the last row to get the last update date
-        last_row = self._db_connector.select_last_row('emissions')
+        last_row = self._emissions_manager.get_last_row()
 
         # Gets both start and end dates
         start_date = self._get_start_date(last_row)
@@ -82,7 +107,7 @@ class DataCollector:
         
         emissions = []
 
-        while start_date <= stop_date:
+        while start_date <= stop_date:           
             # Generates the endpoint
             start_date_str = start_date.strftime(self.DATE_FORMAT)
             endpoint = self.ENDPOINT_URL + start_date_str
@@ -201,10 +226,10 @@ class DataCollector:
             Date value 
         """
         # If row is empty, it means the table is empty
-        if not row:
+        if row is None:
             date = datetime.strptime('2015-01-01', self.DATE_FORMAT).date()
         else:
             # Obtains the date column from the first row
-            date = row[0][0]
+            date = row[0]
 
         return date
