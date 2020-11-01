@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import psycopg2
-from typing import List, Tuple
 
 class Connector(ABC):
     """
@@ -19,28 +18,10 @@ class Connector(ABC):
         """
         pass
 
-    @abstractmethod
-    def insert_data(self, name: str, values: List[Tuple]) -> None:
-        """
-        Inserts data from a dictionary into a table or a collection
-
-        Parameters
-        ----------
-        name : str
-            Table or collection name
-
-        values : List[Tuple]
-            List containing a tuple for each observation
-        """
-        pass
-
 class PostgresConnector(Connector):
     """
-    Connection to a PostgreSQL database
+    Handles the connection to a PostgreSQL database
     """
-
-    def __init__(self) -> None:
-        self._connection = None
 
     def connect(self, config_parsed: dict) -> object:
         """
@@ -56,17 +37,17 @@ class PostgresConnector(Connector):
         connection : object
             Object which encapsulates a database session
         """
-        self._connection = psycopg2.connect(user=config_parsed['postgres']['user'],
+        connection = psycopg2.connect(user=config_parsed['postgres']['user'],
                                       password=config_parsed['postgres']['password'],
                                       host=config_parsed['postgres']['host'],
                                       port=config_parsed['postgres']['port'],
                                       database=config_parsed['postgres']['database'])
         
-        return self._connection
+        return connection
     
 class TimescaleConnector(Connector):
     """
-    Connection to a Timescale database.
+    Handles the connection to a Timescale database.
     """
 
     def connect(self, config_parsed: dict) -> object:
