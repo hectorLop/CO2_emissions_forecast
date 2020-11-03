@@ -67,3 +67,31 @@ class EmissionsManager():
             cursor.close()
 
         return data
+
+    def get_emissions_data(self, table_name: str, start_date: str, stop_date: str) -> Tuple[str, str, float]:
+        """
+        Retrieve the emissions data in-between two given dates.
+
+        Parameters
+        ----------
+        start_date : str
+            Date from which to start extracting emissions data.
+        stop_date : str
+            Date where to stop data extraction.
+        
+        Returns
+        -------
+        data : List[Tuple[str, str, float]]
+            List of tuples. Each tuple is composed of (date, hour, value), being the date
+            and the hour of type string and the value of tyoe float.
+        """
+        query = f'SELECT date FROM {table_name} WHERE \'{start_date}\' <= date <= \'{stop_date}\' ORDER BY date DESC;'
+
+        with self._connector.cursor() as cursor:
+            cursor.execute(query, None)
+
+            data = cursor.fetchall()
+
+            cursor.close()
+
+        return data
